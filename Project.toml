@@ -1,0 +1,4 @@
+name = "TripleCorrelation"
+uuid = "46f7c9cd-7951-4fee-9632-018d57de4ef0"
+authors = ["Graham Smith <grahamas@gmail.com>"]
+version = "0.1.0"
