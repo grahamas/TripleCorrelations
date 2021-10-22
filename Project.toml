@@ -1,4 +1,8 @@
-name = "TripleCorrelation"
-uuid = "46f7c9cd-7951-4fee-9632-018d57de4ef0"
+name = "TripleCorrelations"
+uuid = "6a41bcfa-3301-11ec-2a0d-df01ea421e5a"
 authors = ["Graham Smith <grahamas@gmail.com>"]
 version = "0.1.0"
+
+[deps]
+LoopVectorization = "bdcacae8-1622-11e9-2a5c-532679323890"
+OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
