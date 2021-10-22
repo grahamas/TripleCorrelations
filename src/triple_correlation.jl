@@ -60,8 +60,8 @@ function _calculate_scaled_triple_correlation(src, λ_max)
 end
 _calculate_scaled_triple_correlation(raster::OffsetArray, args...) = _calculate_scaled_triple_correlation(parent(raster), args...)
 
-function calculate_scaling_factor(raster, λ_max)
-    N, T = size(raster)
+function calculate_scaling_factor(arr, λ_max)
+    N, T = size(arr)
     (T - λ_max[1] + 1) * (N - λ_max[2] + 1)
 end
 
