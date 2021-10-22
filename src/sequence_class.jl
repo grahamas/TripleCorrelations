@@ -1,3 +1,5 @@
+# Truncating calculation
+
 function class_tricorr!(class_contribution::Vector, src, neuron_max_lag, time_max_lag, lags_classifier::Function)
     neuron_lag_range = -(neuron_max_lag):(neuron_max_lag)        
     time_lag_range = -(time_max_lag):(time_max_lag)
@@ -7,7 +9,7 @@ function class_tricorr!(class_contribution::Vector, src, neuron_max_lag, time_ma
     neuron_range = (1-minimum(neuron_lag_range)):(N_neurons-maximum(neuron_lag_range))
 
     class_contribution .= 0
-
+    #@warn "No turbo."
     @turbo for n1 ∈ neuron_lag_range, n2 ∈ neuron_lag_range, 
             t1 ∈ time_lag_range, t2 ∈ time_lag_range
         class = lags_classifier(n1, n2, t1, t2)
@@ -32,6 +34,44 @@ function sequence_class_tricorr(src::OffsetArray, args...)
     sequence_class_tricorr(parent(src), args...)
 end
 
+# Zero padding calculation
+
+function class_tricorr_zeropad!(class_contribution::Vector, src::AbstractArray{T}, neuron_max_lag, time_max_lag, lags_classifier::Function) where T
+    neuron_lag_range = -(neuron_max_lag):(neuron_max_lag)        
+    time_lag_range = -(time_max_lag):(time_max_lag)
+
+    neuron_axis, time_axis = axes(src)
+    
+    padded_src = PaddedView(zero(T), src, (first(neuron_axis)-neuron_max_lag:last(neuron_axis)+neuron_max_lag, first(time_axis)-time_max_lag:last(time_axis)+time_max_lag))
+
+    class_contribution .= 0
+    #@warn "No turbo."
+    @turbo for n1 ∈ neuron_lag_range, n2 ∈ neuron_lag_range, 
+            t1 ∈ time_lag_range, t2 ∈ time_lag_range
+        class = lags_classifier(n1, n2, t1, t2)
+        contribution = 0
+        for i_neuron ∈ neuron_axis, i_time ∈ time_axis
+            contribution += padded_src[i_neuron, i_time] * padded_src[i_neuron+n1,i_time+t1] * padded_src[i_neuron+n2,i_time+t2]
+        end
+        class_contribution[class] += contribution
+    end
+    return class_contribution ./ calculate_scaling_factor(src, (neuron_max_lag, time_max_lag))
+end
+
+function sequence_class_tricorr_zeropad(src, neuron_max_lag, time_max_lag)
+    N_network_classifications = 14
+    network_class_contributions = Array{Float64}(undef, N_network_classifications)
+    lags_classifier = lag_motif_sequence_class
+
+    class_tricorr_zeropad!(network_class_contributions, src, neuron_max_lag, time_max_lag, lags_classifier)
+end
+
+function sequence_class_tricorr_zeropad(src::OffsetArray, args...)
+    sequence_class_tricorr_zeropad(parent(src), args...)
+end
+
+
+# Helpers
 
 
 
