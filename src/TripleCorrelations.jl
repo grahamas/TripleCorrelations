@@ -8,7 +8,7 @@ export TripleCorrelation, triple_correlation
 include("sequence_class.jl")
 export sequence_class_tricorr, sequence_class_tricorr_zeropad
 
-include("time_only.jl")
+include("marginal.jl")
 export time_tricorr_zeropad, space_tricorr_zeropad, space_time_tricorr_zeropad,
     marginal_tricorr_zeropad
 end # module
