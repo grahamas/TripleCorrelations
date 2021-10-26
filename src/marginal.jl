@@ -185,8 +185,8 @@ function marginal_tricorr_zeropad!(marginal_contributions_offset::NamedTuple, sr
         n1 = space_lag_range[n1i]; n2 = space_lag_range[n2i] 
         t1 = time_lag_range[t1i]; t2 = time_lag_range[t2i]
         contribution = 0
-        for i_neuron ∈ padded_space_axis, i_time ∈ padded_time_axis
-            contribution += padded_src[i_neuron, i_time] * padded_src[i_neuron+n1,i_time+t1] * padded_src[i_neuron+n2,i_time+t2]
+        for i_space ∈ padded_space_axis, i_time ∈ padded_time_axis
+            contribution += padded_src[i_space, i_time] * padded_src[i_space+n1,i_time+t1] * padded_src[i_space+n2,i_time+t2]
         end
         time_contribution[t1i, t2i] += contribution
         space_time_contribution[n1i, t1i] += contribution
