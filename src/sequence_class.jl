@@ -47,7 +47,6 @@ function class_tricorr_zeropad!(class_contribution::Vector, src::AbstractArray{T
     padded_time_axis = time_axis .+ time_max_lag
 
     class_contribution .= 0
-    @warn "Inner turbo."
     for n1 ∈ space_lag_range, n2 ∈ space_lag_range, 
             t1 ∈ time_lag_range, t2 ∈ time_lag_range
         class = lags_classifier(n1, n2, t1, t2)
