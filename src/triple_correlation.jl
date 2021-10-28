@@ -65,6 +65,11 @@ function calculate_scaling_factor(arr, λ_max)
     (T - λ_max[1] + 1) * (N - λ_max[2] + 1)
 end
 
+function calculate_scaling_factor_zeropad(arr, λ_max)
+    prod(size(arr))
+end
+
+
 _hi_bound(l1, l2, M) = M - max(0, l1, l2)
 _lo_bound(l1, l2) = 1 + min(0, l1, l2)
 
