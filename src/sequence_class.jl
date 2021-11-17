@@ -18,7 +18,7 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src, space_
         end
         class_contribution[class] += contribution
     end
-    return class_contribution ./ calculate_scaling_factor(src, (space_max_lag, time_max_lag))
+    class_contribution ./= calculate_scaling_factor(src, (space_max_lag, time_max_lag))
 end
 
 function sequence_class_tricorr(src, space_max_lag, time_max_lag)
@@ -36,29 +36,32 @@ end
 # Zero padding calculation
 
 function sequence_class_tricorr_zeropad!(class_contribution::AbstractVector, src::AbstractArray{T}, space_max_lag, time_max_lag, lags_classifier::Function) where T
+    src = parent(src)
     space_lag_range = -(space_max_lag):(space_max_lag)        
     time_lag_range = -(time_max_lag):(time_max_lag)
 
     space_axis, time_axis = axes(src)
-    
-    padded_src = PaddedView(zero(T), src, (first(space_axis)-space_max_lag:last(space_axis)+space_max_lag, first(time_axis)-time_max_lag:last(time_axis)+time_max_lag)) |> collect
-    @assert all(padded_src .>= 0)
-
-    padded_space_axis = space_axis .+ space_max_lag
-    padded_time_axis = time_axis .+ time_max_lag
 
     class_contribution .= 0
     for n1 ∈ space_lag_range, n2 ∈ space_lag_range, 
             t1 ∈ time_lag_range, t2 ∈ time_lag_range
         class = lags_classifier(n1, n2, t1, t2)
         contribution = 0
-        @tturbo for i_space ∈ padded_space_axis, i_time ∈ padded_time_axis
-            contribution += padded_src[i_space, i_time] * padded_src[i_space+n1,i_time+t1] * padded_src[i_space+n2,i_time+t2]
+
+        n_min = first(space_axis)-min(0,min(n1,n2))
+        n_max = last(space_axis)-max(0,max(n1,n2))
+        n_range = n_min:n_max
+
+        t_min = first(time_axis)-min(0,min(t1,t2))
+        t_max = last(time_axis)-max(0,max(t1,t2))
+        t_range = t_min:t_max
+
+        @tturbo for i_space ∈ n_range, i_time ∈ t_range
+            contribution += src[i_space, i_time] * src[i_space+n1,i_time+t1] * src[i_space+n2,i_time+t2]
         end
         class_contribution[class] += contribution
     end
-    @assert calculate_scaling_factor_zeropad(src, (space_max_lag, time_max_lag)) > 0
-    class_contribution ./ calculate_scaling_factor_zeropad(src, (space_max_lag, time_max_lag))
+    class_contribution ./= calculate_scaling_factor_zeropad(src, (space_max_lag, time_max_lag))
 end
 
 function sequence_class_tricorr_zeropad(src, space_max_lag, time_max_lag)
@@ -67,6 +70,7 @@ function sequence_class_tricorr_zeropad(src, space_max_lag, time_max_lag)
     lags_classifier = lag_motif_sequence_class
 
     sequence_class_tricorr_zeropad!(network_class_contributions, src, space_max_lag, time_max_lag, lags_classifier)
+    return network_class_contributions
 end
 
 function sequence_class_tricorr_zeropad(src::OffsetArray, args...)
