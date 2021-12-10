@@ -22,20 +22,35 @@ end
 
 
 function _calculate_unscaled_triple_correlation!(correlation::Array{T_cor,4}, src::S, λ_max::NTuple{2,T_lag}) where {T_cor,T_src,T_lag,S<:AbstractArray{T_src,2}}
+    src = parent(src)
+
     single_λ_ranges = [-l:l for l ∈ λ_max]
     neuron_lag_range, time_lag_range = single_λ_ranges
 
-
     (N_neurons, N_times) = size(src)
-    time_range = (1-minimum(time_lag_range)):(N_times-maximum(time_lag_range))
-    neuron_range = (1-minimum(neuron_lag_range)):(N_neurons-maximum(neuron_lag_range))
+    # Ranges for OffsetArray
+    # time_range = (1-minimum(time_lag_range)):(N_times-maximum(time_lag_range))
+    # neuron_range = (1-minimum(neuron_lag_range)):(N_neurons-maximum(neuron_lag_range))
 
-    @turbo for i_n1 ∈ eachindex(neuron_lag_range), i_t1 ∈ eachindex(neuron_lag_range),  i_n2 ∈ eachindex(time_lag_range), i_t2 ∈ eachindex(time_lag_range)
-        n1, n2, t1, t2 = neuron_lag_range[i_n1], neuron_lag_range[i_n2], 
-time_lag_range[i_t1], time_lag_range[i_t2]
-        accum = 0
+    neuron_max_lag, time_max_lag = λ_max
+
+    # # Ranges for parent(OffsetArray)
+    neuron_range = 1:(N_neurons - 2neuron_max_lag)
+    time_range = 1:(N_times - 2time_max_lag)
+
+    neuron_lag_idxs = 1:length(neuron_lag_range)
+    time_lag_idxs = 1:length(time_lag_range)
+
+    @inbounds for i_n1 ∈ neuron_lag_idxs, i_n2 ∈ neuron_lag_idxs,  i_t1 ∈ time_lag_idxs, i_t2 ∈ time_lag_idxs
+        n1 = neuron_lag_range[i_n1]; n2 = neuron_lag_range[i_n2]
+        t1 = time_lag_range[i_t1]; t2 = time_lag_range[i_t2]
+        accum = correlation[i_n1,i_t1,i_n2,i_t2]
         for i_neuron ∈ neuron_range, i_time ∈ time_range
-            accum += src[i_neuron, i_time] * src[i_neuron+n1,i_time+t1] * src[i_neuron+n2,i_time+t2]
+            i_neuron += neuron_max_lag
+            i_time += time_max_lag
+            accum += src[i_neuron, i_time] * 
+                src[i_neuron+n1,i_time+t1] * 
+                src[i_neuron+n2,i_time+t2]
         end
         correlation[i_n1,i_t1,i_n2,i_t2] = accum
     end
