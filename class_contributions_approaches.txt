@@ -1,0 +1,52 @@
+First approach (the one we've used so far)
+
+```
+for lags ∈ all_lags
+    class_num = classify_lags(lags)
+    for bin_index ∈ data
+        class_contributions[class_num] += bin[bin_index] * bin[bin_index + lags[1]] * bin[bin_index + lags[2]]
+    end
+end
+```
+
+Second approach (nearly identical):
+
+```
+tc = calculate_triple_correlation(data)
+for lags ∈ all_lags
+    class_num = classify_lags(lags)
+    class_contributions[class_num] += tc[lags]
+end
+```
+
+Third approach (much, much, much faster):
+
+```
+tc = calculate_triple_correlation(data)
+
+# Class I
+class_contributions[1] = tc[0,0,0,0]
+
+# Class II
+# n1, n2 == 0, 0
+# t1 == 0 or t2 == 0
+class_contributions[2] += sum(arr[0,nonzero_t,0,0]) + sum(arr[0,0,0,nonzero_t])
+# t1 == t2
+for t ∈ nonzero_t
+    class_contributions[2] += arr[0,t,0,t]
+end
+
+#...
+
+# Class XIV
+# n1 ≠ n2 ≠ 0; t1 ≠ t2 ≠ 0
+for n1 ∈ nonzero_n, t1 ∈ nonzero_t
+    for n2 ∈ nonzero_n[nonzero_n != n1], t2 ∈ nonzero_t[nonzero_t != t1]
+        class_contributions[14] = arr[n1, t1, n2, t2]
+    end
+end
+```
+
+Fourth approach (fastest?):
+
+Same as Third Approach, but don't precalculate the triple correlation.

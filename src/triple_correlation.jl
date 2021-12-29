@@ -27,30 +27,20 @@ function _calculate_unscaled_triple_correlation!(correlation::Array{T_cor,4}, sr
     single_λ_ranges = [-l:l for l ∈ λ_max]
     neuron_lag_range, time_lag_range = single_λ_ranges
 
-    (N_neurons, N_times) = size(src)
-    # Ranges for OffsetArray
-    # time_range = (1-minimum(time_lag_range)):(N_times-maximum(time_lag_range))
-    # neuron_range = (1-minimum(neuron_lag_range)):(N_neurons-maximum(neuron_lag_range))
-
-    neuron_max_lag, time_max_lag = λ_max
-
-    # # Ranges for parent(OffsetArray)
-    neuron_range = 1:(N_neurons - 2neuron_max_lag)
-    time_range = 1:(N_times - 2time_max_lag)
-
     neuron_lag_idxs = 1:length(neuron_lag_range)
     time_lag_idxs = 1:length(time_lag_range)
 
-    @inbounds for i_n1 ∈ neuron_lag_idxs, i_n2 ∈ neuron_lag_idxs,  i_t1 ∈ time_lag_idxs, i_t2 ∈ time_lag_idxs
+    for i_n1 ∈ neuron_lag_idxs, i_n2 ∈ neuron_lag_idxs,  i_t1 ∈ time_lag_idxs, i_t2 ∈ time_lag_idxs
         n1 = neuron_lag_range[i_n1]; n2 = neuron_lag_range[i_n2]
         t1 = time_lag_range[i_t1]; t2 = time_lag_range[i_t2]
+        n_start = max(1 - min(n1, n2), 1); t_start = max(1 - min(t1, t2), 1)
+        n_end = min(size(src,1) - max(n1,n2), size(src,1))
+        t_end = min(size(src,2) - max(t1,t2), size(src,2))
         accum = correlation[i_n1,i_t1,i_n2,i_t2]
-        for i_neuron ∈ neuron_range, i_time ∈ time_range
-            i_neuron += neuron_max_lag
-            i_time += time_max_lag
-            accum += src[i_neuron, i_time] * 
-                src[i_neuron+n1,i_time+t1] * 
-                src[i_neuron+n2,i_time+t2]
+        for n ∈ n_start:n_end, t ∈ t_start:t_end
+            accum += src[n, t] * 
+                src[n+n1, t+t1] * 
+                src[n+n2, t+t2]
         end
         correlation[i_n1,i_t1,i_n2,i_t2] = accum
     end
@@ -75,12 +65,12 @@ function _calculate_scaled_triple_correlation(src, λ_max)
 end
 _calculate_scaled_triple_correlation(raster::OffsetArray, args...) = _calculate_scaled_triple_correlation(parent(raster), args...)
 
-function calculate_scaling_factor(arr, λ_max)
+function calculate_scaling_factor_interior(arr, λ_max)
     N, T = size(arr)
     (T - λ_max[1] + 1) * (N - λ_max[2] + 1)
 end
 
-function calculate_scaling_factor_zeropad(arr, λ_max)
+function calculate_scaling_factor_zeropad(arr)
     prod(size(arr))
 end
 
