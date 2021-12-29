@@ -326,9 +326,9 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, n_max_lag, t_max_l
     n1_with_nonzero_filtered = [(n1, filter_element(nonzero_n, n1)) for n1 ∈ nonzero_n]
     t1_with_nonzero_filtered = [(t1, filter_element(nonzero_t, t1)) for t1 ∈ nonzero_t]
     @inbounds for (n1, nonzero_notn1) ∈ n1_with_nonzero_filtered, (t1, nonzero_nott1) ∈ t1_with_nonzero_filtered
-        contributions[14] += ThreadsX.sum(
-            lag_contribution(data, n1, t1, n2, t2) for n2 ∈ nonzero_notn1, t2 ∈ nonzero_nott1
-        )
+        for n2 ∈ nonzero_notn1, t2 ∈ nonzero_nott1
+            contributions[14] += lag_contribution(data, n1, t1, n2, t2)
+        end
     end
 
     return contributions ./ calculate_scaling_factor_zeropad(data)

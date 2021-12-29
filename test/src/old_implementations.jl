@@ -5,7 +5,7 @@ function _OLD_lag_contribution(data::Matrix, n1::Int, t1::Int, n2::Int, t2::Int)
     n_start = max(1 - min(n1, n2), 1); t_start = max(1 - min(t1, t2), 1)
     n_end = min(size(data,1) - max(n1,n2), size(data,1))
     t_end = min(size(data,2) - max(t1,t2), size(data,2))
-    @turbo for data_n ∈ n_start:n_end, data_t ∈ t_start:t_end
+    @tturbo for data_n ∈ n_start:n_end, data_t ∈ t_start:t_end
         contribution += data[data_n, data_t] * 
             data[data_n+n1, data_t+t1] *
             data[data_n+n2, data_t+t2]
