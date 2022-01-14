@@ -14,12 +14,24 @@ end
 
 function pad_motif_example(motif, pad_n, pad_t)
     motif_n, motif_t = size(motif)
-    padded = zeros(motif_n + 2pad_n, motif_t + 2pad_t)
+    padded = zeros(Int, motif_n + 2pad_n, motif_t + 2pad_t)
     padded[pad_n+1:pad_n+motif_n, pad_t+1:pad_t+motif_t] .= motif
+    return padded
+end
+
+function pad_top_motif_example(motif, pad_n, pad_t)
+    motif_n, motif_t = size(motif)
+    padded = zeros(Int, motif_n + 2pad_n, motif_t + 2pad_t)
+    padded[1+pad_n:motif_n+pad_n, pad_t+1:pad_t+motif_t] .= motif
     return padded
 end
 
 function repeat_padded_motif(motif_name, pad_n, pad_t, repeat_n, repeat_t)
     padded_motif = pad_motif_example(motif_examples[motif_name], pad_n, pad_t)
-    repeat(padded_motif, outer=(pad_n, pad_t))
+    repeat(padded_motif, outer=(repeat_n, repeat_t))
+end
+
+function repeat_padded_top_motif(motif_name, pad_n, pad_t, repeat_n, repeat_t)
+    padded_motif = pad_top_motif_example(motif_examples[motif_name], pad_n, pad_t)
+    repeat(padded_motif, outer=(repeat_n, repeat_t))
 end
