@@ -1,7 +1,7 @@
 # Truncating calculation
 using Base.Threads, ThreadsX
 
-function lag_contribution(data::Matrix, n1::Int, t1::Int, n2::Int, t2::Int)
+function lag_contribution_zeropad(data::Matrix, n1::Int, t1::Int, n2::Int, t2::Int)
     contribution = 0
 
     n_start = max(1 - min(n1, n2), 1)
@@ -28,7 +28,7 @@ function lag_contribution(data::Matrix, n1::Int, t1::Int, n2::Int, t2::Int)
     return contribution
 end
 
-function sequence_class_tricorr_unrolled(data::AbstractArray, n_max_lag, t_max_lag)
+function sequence_class_tricorr_zeropad_unrolled(data::AbstractArray, n_max_lag, t_max_lag)
     contributions = zeros(14)
     data = parent(data)
 
@@ -47,17 +47,17 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, n_max_lag, t_max_l
     nonzero_t = [negative_t; positive_t]
 
     # Class I
-    contributions[1] = lag_contribution(data, 0,0,0,0)
+    contributions[1] = lag_contribution_zeropad(data, 0,0,0,0)
 
     # Class II
     # n1, n2 == 0, 0
     # t1 == 0 or t2 == 0
     @inbounds for t ∈ nonzero_t
-        contributions[2] += lag_contribution(data, 0,t,0,0) + lag_contribution(data, 0,0,0,t)
+        contributions[2] += lag_contribution_zeropad(data, 0,t,0,0) + lag_contribution_zeropad(data, 0,0,0,t)
     end
     # t1 == t2
     @inbounds for t ∈ nonzero_t
-        contributions[2] += lag_contribution(data, 0,t,0,t)
+        contributions[2] += lag_contribution_zeropad(data, 0,t,0,t)
     end
 
     # Class III
@@ -66,7 +66,7 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, n_max_lag, t_max_l
     @inbounds for t1 ∈ nonzero_t
         nonzero_nont1_t = filter_element(nonzero_t, t1)
         for t2 ∈ nonzero_nont1_t
-            contributions[3] += lag_contribution(data, 0,t1,0,t2)
+            contributions[3] += lag_contribution_zeropad(data, 0,t1,0,t2)
         end
     end
 
@@ -74,11 +74,11 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, n_max_lag, t_max_l
     # t1, t2 == 0, 0
     # n1 == 0 or n2 == 0
     @inbounds for n ∈ nonzero_n
-        contributions[4] += lag_contribution(data, n,0,0,0) + lag_contribution(data, 0,0,n,0)
+        contributions[4] += lag_contribution_zeropad(data, n,0,0,0) + lag_contribution_zeropad(data, 0,0,n,0)
     end
     # t1 == t2
     @inbounds for n ∈ nonzero_n
-        contributions[4] += lag_contribution(data, n,0,n,0)
+        contributions[4] += lag_contribution_zeropad(data, n,0,n,0)
     end
 
     # Class V
@@ -87,86 +87,86 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, n_max_lag, t_max_l
     @inbounds for n1 ∈ nonzero_n
         nonzero_nonn1_n = filter_element(nonzero_n, n1)
         for n2 ∈ nonzero_nonn1_n
-            contributions[5] += lag_contribution(data, n1,0,n2,0)
+            contributions[5] += lag_contribution_zeropad(data, n1,0,n2,0)
         end
     end
 
     # Class VI
     # n1, t1 == 0, 0 && n2, t2 ≠ 0, 0
     @inbounds for n2 ∈ nonzero_n, t2 ∈ nonzero_t
-        contributions[6] += lag_contribution(data, 0, 0, n2, t2)
+        contributions[6] += lag_contribution_zeropad(data, 0, 0, n2, t2)
     end
     # n2, t2 == 0, 0 && n1, t1 ≠ 0, 0
     @inbounds for n1 ∈ nonzero_n, t1 ∈ nonzero_t
-        contributions[6] += lag_contribution(data, n1, t1, 0, 0)
+        contributions[6] += lag_contribution_zeropad(data, n1, t1, 0, 0)
     end
     # n1, t1 == n2, t2 ≠ 0, 0
     @inbounds for n ∈ nonzero_n, t ∈ nonzero_t
-        contributions[6] += lag_contribution(data, n, t, n, t)
+        contributions[6] += lag_contribution_zeropad(data, n, t, n, t)
     end
 
     # Class VII
     # Assuming horz arm (rh) point (0,0)
     # t1 == t2 < 0 && n2 ≠ 0 && n1 == 0
     @inbounds for t ∈ negative_t, n2 ∈ nonzero_n
-        contributions[7] += lag_contribution(data, 0, t, n2, t)
+        contributions[7] += lag_contribution_zeropad(data, 0, t, n2, t)
     end
     # Assuming horz arm (rh) point (0,0)
     # t1 == t2 < 0 && n1 ≠ 0 && n2 == 0
     @inbounds for t ∈ negative_t, n1 ∈ nonzero_n
-        contributions[7] += lag_contribution(data, n1, t, 0, t)
+        contributions[7] += lag_contribution_zeropad(data, n1, t, 0, t)
     end
     # Assuming vert arm (up or down) point (0,0)
     # n1 == n2 ≠ 0 && t2 > 0 && t1 == 0
     @inbounds for n ∈ nonzero_n, t2 ∈ positive_t
-        contributions[7] += lag_contribution(data, n, 0, n, t2)
+        contributions[7] += lag_contribution_zeropad(data, n, 0, n, t2)
     end
     # Assuming vert arm (up or down) point (0,0)
     # n1 == n2 ≠ 0 && t1 > 0 && t2 == 0
     @inbounds for n ∈ nonzero_n, t1 ∈ positive_t
-        contributions[7] += lag_contribution(data, n, t1, n, 0)
+        contributions[7] += lag_contribution_zeropad(data, n, t1, n, 0)
     end
     # Assuming corner point (0,0)
     # n1 ≠ n2 && n1 == 0 && t1 > 0 && t2 == 0
     @inbounds for n2 ∈ nonzero_n, t1 ∈ positive_t
-        contributions[7] += lag_contribution(data, 0, t1, n2, 0)
+        contributions[7] += lag_contribution_zeropad(data, 0, t1, n2, 0)
     end
     # Assuming corner point (0,0)
     # n1 ≠ n2 && n2 == 0 && t2 > 0 && t1 == 0
     @inbounds for n1 ∈ nonzero_n, t2 ∈ positive_t
-        contributions[7] += lag_contribution(data, n1, 0, 0, t2)
+        contributions[7] += lag_contribution_zeropad(data, n1, 0, 0, t2)
     end
 
     # Class VIII
     # Assuming horz arm (lh) point (0,0)
     # t1 == t2 > 0 && n2 ≠ 0 && n1 == 0
     @inbounds for t ∈ positive_t, n2 ∈ nonzero_n
-        contributions[8] += lag_contribution(data, 0, t, n2, t)
+        contributions[8] += lag_contribution_zeropad(data, 0, t, n2, t)
     end
     # Assuming horz arm (lh) point (0,0)
     # t1 == t2 > 0 && n1 ≠ 0 && n2 == 0
     @inbounds for t ∈ positive_t, n1 ∈ nonzero_n
-        contributions[8] += lag_contribution(data, n1, t, 0, t)
+        contributions[8] += lag_contribution_zeropad(data, n1, t, 0, t)
     end
     # Assuming vert arm (up or down) point (0,0)
     # n1 == n2 ≠ 0 && t2 < 0 && t1 == 0
     @inbounds for n ∈ nonzero_n, t2 ∈ negative_t
-        contributions[8] += lag_contribution(data, n, 0, n, t2)
+        contributions[8] += lag_contribution_zeropad(data, n, 0, n, t2)
     end
     # Assuming vert arm (up or down) point (0,0)
     # n1 == n2 ≠ 0 && t1 < 0 && t2 == 0
     @inbounds for n ∈ nonzero_n, t1 ∈ negative_t
-        contributions[8] += lag_contribution(data, n, t1, n, 0)
+        contributions[8] += lag_contribution_zeropad(data, n, t1, n, 0)
     end
     # Assuming corner point (0,0)
     # n1 ≠ n2 && n1 == 0 && t1 < 0 && t2 == 0
     @inbounds for n2 ∈ nonzero_n, t1 ∈ negative_t
-        contributions[8] += lag_contribution(data, 0, t1, n2, 0)
+        contributions[8] += lag_contribution_zeropad(data, 0, t1, n2, 0)
     end
     # Assuming corner point (0,0)
     # n1 ≠ n2 && n2 == 0 && t2 < 0 && t1 == 0
     @inbounds for n1 ∈ nonzero_n, t2 ∈ negative_t
-        contributions[8] += lag_contribution(data, n1, 0, 0, t2)
+        contributions[8] += lag_contribution_zeropad(data, n1, 0, 0, t2)
     end
 
     # Class IX
@@ -176,31 +176,31 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, n_max_lag, t_max_l
         positive_nont1_t = filter_element(positive_t, t1)
         # n in inner loop bc filter_element allocates
         @inbounds for t2 ∈ positive_nont1_t, n ∈ nonzero_n
-            contributions[9] += lag_contribution(data, n, t1, n, t2)
+            contributions[9] += lag_contribution_zeropad(data, n, t1, n, t2)
         end
     end
     # Assume middle point (0,0); n2 odd
     # n1 == 0 && n2 ≠ 0 && t2 < 0 && t1 > 0
     @inbounds for t1 ∈ positive_t, n2 ∈ nonzero_n, t2 ∈ negative_t
-        contributions[9] += lag_contribution(data, 0, t1, n2, t2)
+        contributions[9] += lag_contribution_zeropad(data, 0, t1, n2, t2)
     end
     # Assume middle point (0,0); n1 odd
     # n2 == 0 && n1 ≠ 0 && t1 < 0 && t2 > 0
     @inbounds for n1 ∈ nonzero_n, t1 ∈ negative_t, t2 ∈ positive_t
-        contributions[9] += lag_contribution(data, n1, t1, 0, t2)
+        contributions[9] += lag_contribution_zeropad(data, n1, t1, 0, t2)
     end
     # Assume right point (0,0); n2 odd
     # n1 == 0 && n2 ≠ 0 && t2 < t1 < 0
     @inbounds for t1 ∈ negative_t[begin+1:end], n2 ∈ nonzero_n
         @inbounds for t2 ∈ negative_t[begin]:(t1-1)
-            contributions[9] += lag_contribution(data, 0, t1, n2, t2)
+            contributions[9] += lag_contribution_zeropad(data, 0, t1, n2, t2)
         end
     end
     # Assume right point (0,0); n1 odd
     # n2 == 0 && n1 ≠ 0 && t1 < t2 < 0
     @inbounds for n1 ∈ nonzero_n, t1 ∈ negative_t[begin:end-1]
         for t2 ∈ (t1+1):-1
-            contributions[9] += lag_contribution(data, n1, t1, 0, t2)
+            contributions[9] += lag_contribution_zeropad(data, n1, t1, 0, t2)
         end
     end
 
@@ -209,38 +209,38 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, n_max_lag, t_max_l
     # n1 == n2 ≠ 0 && t1 < t2 < 0
     @inbounds for n ∈ nonzero_n, t1 ∈ negative_t[begin:end-1]
         for t2 ∈ (t1+1):-1
-            contributions[10] += lag_contribution(data, n, t1, n, t2)
+            contributions[10] += lag_contribution_zeropad(data, n, t1, n, t2)
         end
     end
     # Assume odd point (0,0)
     # n1 == n2 ≠ 0 && t2 < t1 < 0
     @inbounds for n ∈ nonzero_n, t1 ∈ negative_t[begin+1:end]
         for t2 ∈ negative_t[begin]:(t1-1)
-            contributions[10] += lag_contribution(data, n, t1, n, t2)
+            contributions[10] += lag_contribution_zeropad(data, n, t1, n, t2)
         end
     end
     # Assume middle point (0,0); n2 odd
     # n1 == 0 && n2 ≠ 0 && t2 > 0 && t1 < 0
     @inbounds for t1 ∈ negative_t, n2 ∈ nonzero_n, t2 ∈ positive_t
-        contributions[10] += lag_contribution(data, 0, t1, n2, t2)
+        contributions[10] += lag_contribution_zeropad(data, 0, t1, n2, t2)
     end
     # Assume middle point (0,0); n1 odd
     # n2 == 0 && n1 ≠ 0 && t1 > 0 && t2 < 0
     @inbounds for n1 ∈ nonzero_n, t1 ∈ positive_t, t2 ∈ negative_t
-        contributions[10] += lag_contribution(data, n1, t1, 0, t2)
+        contributions[10] += lag_contribution_zeropad(data, n1, t1, 0, t2)
     end
     # Assume left point (0,0); n2 odd
     # n1 == 0 && n2 ≠ 0 && 0 < t1 < t2
     @inbounds for t1 ∈ positive_t[begin:end-1], n2 ∈ nonzero_n
         for t2 ∈ (t1+1):positive_t[end]
-            contributions[10] += lag_contribution(data, 0, t1, n2, t2)
+            contributions[10] += lag_contribution_zeropad(data, 0, t1, n2, t2)
         end
     end
     # Assume left point (0,0); n1 odd
     # n2 == 0 && n1 ≠ 0 && 0 < t2 < t1
     @inbounds for n1 ∈ nonzero_n, t1 ∈ positive_t[begin+1:end]
         for t2 ∈ positive_t[begin]:(t1-1)
-            contributions[10] += lag_contribution(data, n1, t1, 0, t2)
+            contributions[10] += lag_contribution_zeropad(data, n1, t1, 0, t2)
         end
     end
 
@@ -249,39 +249,39 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, n_max_lag, t_max_l
     # n2 == 0; n1 ≠ 0; 0 < t1 < t2
     @inbounds for n1 ∈ nonzero_n, t1 ∈ positive_t[begin:end-1]
         for t2 ∈ (t1+1):positive_t[end]
-            contributions[11] += lag_contribution(data, n1, t1, 0, t2)
+            contributions[11] += lag_contribution_zeropad(data, n1, t1, 0, t2)
         end
     end
     # Assume left point (0,0); n2 odd
     # n1 == 0; n2 ≠ 0; 0 < t2 < t1
     @inbounds for t1 ∈ positive_t[begin+1:end], n2 ∈ nonzero_n 
         for t2 ∈ 1:(t1-1)
-            contributions[11] += lag_contribution(data, 0, t1, n2, t2)
+            contributions[11] += lag_contribution_zeropad(data, 0, t1, n2, t2)
         end
     end
     # Assume right point (0,0); n1 odd
     # n2 == 0; n1 ≠ 0; t2 < t1 < 0
     @inbounds for n1 ∈ nonzero_n, t1 ∈ negative_t[begin+1:end]
         for t2 ∈ negative_t[begin]:(t1-1)
-            contributions[11] += lag_contribution(data, n1, t1, 0, t2)
+            contributions[11] += lag_contribution_zeropad(data, n1, t1, 0, t2)
         end
     end
     # Assume right point (0,0); n2 odd
     # n1 == 0; n2 ≠ 0; t1 < t2 < 0
     @inbounds for t1 ∈ negative_t[begin:end-1], n2 ∈ nonzero_n 
         for t2 ∈ (t1+1):-1
-            contributions[11] += lag_contribution(data, 0, t1, n2, t2)
+            contributions[11] += lag_contribution_zeropad(data, 0, t1, n2, t2)
         end
     end
     # Assume middle point (0,0); n1 left
     # n1 == n2 ≠ 0; t1 < 0 < t2
     @inbounds for n ∈ nonzero_n, t1 ∈ negative_t, t2 ∈ positive_t
-        contributions[11] += lag_contribution(data, n, t1, n, t2)
+        contributions[11] += lag_contribution_zeropad(data, n, t1, n, t2)
     end
     # Assume middle point (0,0); n2 left
     # n1 == n2 ≠ 0; t2 < 0 < t1
     @inbounds for n ∈ nonzero_n, t1 ∈ positive_t, t2 ∈ negative_t
-        contributions[11] += lag_contribution(data, n, t1, n, t2)
+        contributions[11] += lag_contribution_zeropad(data, n, t1, n, t2)
     end
 
     # Class XII
@@ -290,15 +290,15 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, n_max_lag, t_max_l
         nonzero_notn1 = filter_element(nonzero_n, n1)
         # Assume (0,0) odd: t1 == t2 > 0
         @inbounds for t ∈ positive_t, n2 ∈ nonzero_notn1
-            contributions[12] += lag_contribution(data, n1, t, n2, t)
+            contributions[12] += lag_contribution_zeropad(data, n1, t, n2, t)
         end
         # Assume n1 odd: t1 < 0; t2 == 0
         @inbounds for t1 ∈ negative_t, n2 ∈ nonzero_notn1
-            contributions[12] += lag_contribution(data, n1, t1, n2, 0)
+            contributions[12] += lag_contribution_zeropad(data, n1, t1, n2, 0)
         end
         # Assume n2 odd: t2 < 0; t1 == 0
         @inbounds for t2 ∈ negative_t, n2 ∈ nonzero_notn1
-            contributions[12] += lag_contribution(data, n1, 0, n2, t2)
+            contributions[12] += lag_contribution_zeropad(data, n1, 0, n2, t2)
         end
     end
 
@@ -308,15 +308,15 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, n_max_lag, t_max_l
         nonzero_notn1 = filter_element(nonzero_n, n1)
         # Assume (0,0) odd: t1 == t2 < 0
         @inbounds for t ∈ negative_t, n2 ∈ nonzero_notn1
-            contributions[13] += lag_contribution(data, n1, t, n2, t)
+            contributions[13] += lag_contribution_zeropad(data, n1, t, n2, t)
         end
         # Assume n1 odd: t1 > 0; t2 == 0
         @inbounds for t1 ∈ positive_t, n2 ∈ nonzero_notn1
-            contributions[13] += lag_contribution(data, n1, t1, n2, 0)
+            contributions[13] += lag_contribution_zeropad(data, n1, t1, n2, 0)
         end
         # Assume n2 odd: t2 > 0; t1 == 0
         @inbounds for t2 ∈ positive_t, n2 ∈ nonzero_notn1
-            contributions[13] += lag_contribution(data, n1, 0, n2, t2)
+            contributions[13] += lag_contribution_zeropad(data, n1, 0, n2, t2)
         end
     end
 
@@ -327,7 +327,7 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, n_max_lag, t_max_l
     t1_with_nonzero_filtered = [(t1, filter_element(nonzero_t, t1)) for t1 ∈ nonzero_t]
     @inbounds for (n1, nonzero_notn1) ∈ n1_with_nonzero_filtered, (t1, nonzero_nott1) ∈ t1_with_nonzero_filtered
         for n2 ∈ nonzero_notn1, t2 ∈ nonzero_nott1
-            contributions[14] += lag_contribution(data, n1, t1, n2, t2)
+            contributions[14] += lag_contribution_zeropad(data, n1, t1, n2, t2)
         end
     end
 
@@ -342,7 +342,7 @@ function filter_element(arr, el)
     filter(≠(el), arr)
 end
 
-function sequence_class_tricorr_unrolled(tricorr::TripleCorrelation)
+function sequence_class_tricorr_zeropad_unrolled(tricorr::TripleCorrelation)
     arr = tricorr.arr
     contributions = zeros(14)
 
@@ -733,6 +733,7 @@ end
 function sequence_class_tricorr_zeropad(src::OffsetArray, args...)
     sequence_class_tricorr_zeropad(parent(src), args...)
 end
+
 
 
 # Helpers
