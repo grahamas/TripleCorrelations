@@ -691,6 +691,7 @@ end
 # Zero padding calculation
 
 function sequence_class_tricorr_zeropad!(class_contribution::AbstractVector, src::AbstractArray{T}, space_max_lag, time_max_lag, lags_classifier::Function) where T
+    @info "Not turbo tricorr calc"
     src = parent(src)
     space_lag_range = -(space_max_lag):(space_max_lag)        
     time_lag_range = -(time_max_lag):(time_max_lag)
@@ -717,7 +718,7 @@ function sequence_class_tricorr_zeropad!(class_contribution::AbstractVector, src
         end
         class_contribution[class] += contribution
     end
-    class_contribution ./= calculate_scaling_factor_zeropad(src, (space_max_lag, time_max_lag))
+    class_contribution ./= calculate_scaling_factor_zeropad(src)
 end
 
 function sequence_class_tricorr_zeropad(src, space_max_lag, time_max_lag)
