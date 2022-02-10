@@ -50,7 +50,6 @@ function _calculate_unscaled_triple_correlation!(correlation::OffsetArray{T_cor,
     _calculate_unscaled_triple_correlation!(parent(correlation), src, λ_max)
 end
 
-
 function _calculate_unscaled_triple_correlation(src, λ_max)
     λ_ranges = Tuple(repeat([-l:l for l ∈ λ_max], outer=(2,)))
     correlation = zeros(Float64, λ_ranges)
@@ -70,7 +69,11 @@ function calculate_scaling_factor_interior(arr, λ_max)
     (T - λ_max[1] + 1) * (N - λ_max[2] + 1)
 end
 
-function calculate_scaling_factor_zeropad(arr)
+function calculate_scaling_factor(arr, ::ZeroPadded)
+    prod(size(arr)) # FIXME
+end
+
+function calculate_scaling_factor(arr, ::Periodic)
     prod(size(arr))
 end
 
@@ -85,7 +88,6 @@ end
 
 
 ####### High dimensional fallback #######
-
 
 function _calculate_unscaled_triple_correlation!(correlation::OffsetArray{T_cor,N2}, raster::R, λ_max::NTuple{N,T_lag}) where {T_cor,N2,T_src,N,T_lag,R<:AbstractArray{T_src,N}}
     @warn "Using slow fallback for >2D image"
