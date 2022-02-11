@@ -12,7 +12,7 @@ function circshift2d_no_views(arr, d1, d2)
             arr[1:d1, 1+d2:end] arr[1:d1, 1:d2]]
 end
 
-function lag_contribution(data::D, boundary::Periodic, n1::Int, t1::Int, n2::Int, t2::Int, data_λ₁=D(undef, size(data)), data_λ₂=D(undef, size(data))) where {D <: Matrix}
+function lag_contribution(data::D, boundary::Periodic, n1::Int, t1::Int, n2::Int, t2::Int, data_λ₁=D(undef, size(data)), data_λ₂=D(undef, size(data))) where {T, D <: AbstractArray{T,2}}
     # Assume ns, ts < size(data)
     contribution = 0
     circshift!(data_λ₁, data, (-n1, -t1))
@@ -24,7 +24,7 @@ function lag_contribution(data::D, boundary::Periodic, n1::Int, t1::Int, n2::Int
     return contribution
 end
 
-function lag_contribution(data::Matrix, boundary::ZeroPadded, n1::Int, t1::Int, n2::Int, t2::Int)
+function lag_contribution(data::D, boundary::ZeroPadded, n1::Int, t1::Int, n2::Int, t2::Int) where {T, D <: AbstractArray{T,2}}
     contribution = 0
 
     n_start = max(1 - min(n1, n2), 1)
