@@ -1032,15 +1032,6 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::Abstra
     class_contribution ./= calculate_scaling_factor(src, boundary)
 end
 
-function sequence_class_tricorr(src, boundary::AbstractBoundaryCondition, space_max_lag, time_max_lag)
-    N_network_classifications = 14
-    network_class_contributions = Array{Float64}(undef, N_network_classifications)
-    lags_classifier = lag_motif_sequence_class
-
-    sequence_class_tricorr!(network_class_contributions, src, boundary, space_max_lag, time_max_lag, lags_classifier)
-    return network_class_contributions
-end
-
 function sequence_class_tricorr(src::OffsetArray, args...)
     sequence_class_tricorr(parent(src), args...)
 end
