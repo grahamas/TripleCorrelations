@@ -368,7 +368,7 @@ function sequence_class_tricorr_unrolled(data::AbstractArray,boundary::Periodic,
     t_lag_axis = -t_max_lag:t_max_lag
 
     N_space, N_times = size(data)
-    @assert 2n_max_lag < N_space && 2t_max_lag < N_times
+    @assert 2n_max_lag < N_space && 2t_max_lag < N_times, "Need 2$(n_max_lag) < $N_space and 2$t_max_lag < $N_times"
 
     negative_n = n_lag_axis[begin:end÷2]
     positive_n = n_lag_axis[end÷2+2:end]
