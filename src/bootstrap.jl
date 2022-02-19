@@ -34,7 +34,7 @@ end
     unshuffled_raster[1:count_ones] .= 1
     sequence_class_bootstrapped = bootstrap_sequence_classes!(unshuffled_raster, boundary, n_lag, t_lag, n_bootstraps) .* n_bootstraps
     while any(sequence_class_bootstrapped .== 0)
-        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = ($(n_lag,t_lag))]"
+        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $((n_lag,t_lag))]"
         n_bootstraps += bootstraps_step
         sequence_class_bootstrapped += sum(
             sequence_class_tricorr(shuffle!(unshuffled_raster), boundary, n_lag, t_lag) 

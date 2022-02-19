@@ -112,6 +112,6 @@ end
 @testset "Network Motif XIV" begin
     fn = testdatadir("XIV.csv")
     raster_XIV = load_raster(fn)
-    contributions_XIV = @btime sequence_class_tricorr($raster_XIV, 7, 7)
+    contributions_XIV = @btime sequence_class_tricorr($raster_XIV, ZeroPadded(), 7, 7)
     @test contributions_XIV[14] > 0 && all(contributions_XIV[begin+14:end] .== 0)
 end
