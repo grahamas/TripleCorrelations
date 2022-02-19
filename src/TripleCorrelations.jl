@@ -1,7 +1,10 @@
 module TripleCorrelations
 
 using LoopVectorization, OffsetArrays, PaddedViews
+using CSV, Tables
 using Memoize
+
+include("motif_examples.jl")
 
 include("boundaries.jl")
 export AbstractBoundaryCondition, Periodic, ZeroPadded
@@ -23,4 +26,5 @@ export time_tricorr_zeropad, space_tricorr_zeropad, space_time_tricorr_zeropad,
     marginal_tricorr_zeropad,
     time_tricorr_zeropad!, space_time_tricorr_zeropad!, space_tricorr_zeropad!,
     marginal_tricorr_zeropad!
+
 end # module
