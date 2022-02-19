@@ -18,7 +18,8 @@ export sequence_class_tricorr_unrolled,
     sequence_class_tricorr_unrolled
 
 include("bootstrap.jl")
-export bootstrap_sequence_classes, bootstrap_sequence_classes_nonzero
+export bootstrap_sequence_classes, bootstrap_sequence_classes_nonzero,
+    bootstrap_normed_sequence_classes
 
 # FIXME switch marginals to new boundary system
 include("marginal.jl")
