@@ -3,6 +3,7 @@ module TripleCorrelations
 using LoopVectorization, OffsetArrays, PaddedViews
 using CSV, Tables
 using Memoize
+using Random
 
 include("motif_examples.jl")
 

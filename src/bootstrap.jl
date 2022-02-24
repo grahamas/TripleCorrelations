@@ -17,7 +17,7 @@ end
 
 function bootstrap_sequence_classes!(inplace_src_raster, boundary, n_lag::Int, t_lag::Int, n_bootstraps::Int)
     bootstrap_tricorr = sum(
-        sequence_class_tricorr(shuffle!(inplace_src_raster), n_lag, t_lag) 
+        sequence_class_tricorr(shuffle!(inplace_src_raster), boundary, n_lag, t_lag) 
             for _ ∈ 1:n_bootstraps
     )
     bootstrap_tricorr ./= n_bootstraps
