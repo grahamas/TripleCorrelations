@@ -5,12 +5,12 @@ function bootstrap_normed_sequence_classes(raster, boundary, n_lag, t_lag; n_boo
 end
 
 # Don't memoize because raster is variable
-function bootstrap_sequence_classes(raster::BitArray, boundary, n_lag::Int, t_lag::Int, n_bootstraps::Int)
+function bootstrap_sequence_classes(raster::Array{Bool}, boundary, n_lag::Int, t_lag::Int, n_bootstraps::Int)
     bootstrap_sequence_classes(boundary, size(raster)..., sum(raster), n_lag, t_lag,  n_bootstraps)
 end
 
 @memoize function bootstrap_sequence_classes(boundary, n::Int, t::Int, count_ones::Int, n_lag::Int, t_lag::Int, n_bootstraps::Int)
-    unshuffled_raster = zeros(Int, n, t)
+    unshuffled_raster = zeros(Bool, n, t)
     unshuffled_raster[1:count_ones] .= 1
     bootstrap_sequence_classes!(unshuffled_raster, boundary, n_lag, t_lag, n_bootstraps)
 end
@@ -25,21 +25,26 @@ function bootstrap_sequence_classes!(inplace_src_raster, boundary, n_lag::Int, t
 end
 
 # Don't memoize because raster is variable
-function bootstrap_sequence_classes_nonzero(raster::BitArray, boundary, n_lag::Int, t_lag::Int, n_bootstraps::Int, bootstraps_step::Int)
+function bootstrap_sequence_classes_nonzero(raster::Array{Bool}, boundary, n_lag::Int, t_lag::Int, n_bootstraps::Int, bootstraps_step::Int)
     bootstrap_sequence_classes_nonzero(boundary, size(raster)..., count(raster), n_lag, t_lag, n_bootstraps, bootstraps_step)
 end
 
 @memoize function bootstrap_sequence_classes_nonzero(boundary, n::Int, t::Int, count_ones::Int, n_lag::Int, t_lag::Int, n_bootstraps::Int, bootstraps_step::Int)
-    unshuffled_raster = zeros(Int, n, t)
+    max_bootstraps = n_bootstraps * 20
+    unshuffled_raster = zeros(Bool, n, t)
     unshuffled_raster[1:count_ones] .= 1
     sequence_class_bootstrapped = bootstrap_sequence_classes!(unshuffled_raster, boundary, n_lag, t_lag, n_bootstraps) .* n_bootstraps
-    while any(sequence_class_bootstrapped .== 0)
+    while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
         @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $((n_lag,t_lag))]"
         n_bootstraps += bootstraps_step
         sequence_class_bootstrapped += sum(
             sequence_class_tricorr(shuffle!(unshuffled_raster), boundary, n_lag, t_lag) 
                 for _ ∈ 1:bootstraps_step
         )
+    end
+    if n_bootstraps >= max_bootstraps
+        @warn "BAD"
+        @show boundary n t count_ones n_lag t_lag
     end
     sequence_class_bootstrapped ./= n_bootstraps
     return sequence_class_bootstrapped

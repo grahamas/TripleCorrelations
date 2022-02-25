@@ -1,6 +1,6 @@
 module TripleCorrelations
 
-using LoopVectorization, OffsetArrays, PaddedViews
+using LoopVectorization, OffsetArrays, PaddedViews, IterTools
 using CSV, Tables
 using Memoize
 using Random

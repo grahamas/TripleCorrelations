@@ -378,6 +378,8 @@ function sequence_class_tricorr_unrolled(data::AbstractArray,boundary::Periodic,
     nonzero_n = [negative_n; positive_n]
     nonzero_t = [negative_t; positive_t]
 
+    @show axes(data)
+
     # Class I
     contributions[1] = lag_contribution(data, boundary, 0,0,0,0,lag1_cache,lag2_cache)
 
