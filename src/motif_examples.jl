@@ -44,7 +44,7 @@ motif_examples = Dict(
 )
 
 function rand_I(n_range, t_range, n_jitter, t_jitter)
-    (rand(n_range), rand(t_range))
+    ((rand(n_range), rand(t_range)),  (rand(n_range), rand(t_range)),  (rand(n_range), rand(t_range)))
 end
 
 function rand_II(n_range, t_range, n_jitter, t_jitter)
