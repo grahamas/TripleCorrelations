@@ -6,6 +6,7 @@ using Memoize
 using Random
 
 include("motif_examples.jl")
+export rand_motif
 
 include("boundaries.jl")
 export AbstractBoundaryCondition, Periodic, ZeroPadded
