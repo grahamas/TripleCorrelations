@@ -1,8 +1,9 @@
 
 function bootstrap_normed_sequence_classes(raster, boundary, n_lag, t_lag; n_bootstraps, bootstraps_step=max(n_bootstraps÷5,1))
-    raw_sequence_classes = sequence_class_tricorr(raster, boundary, n_lag, t_lag)
+    raw_sequence_classes = sequence_class_tricorr_unrolled(raster, boundary, n_lag, t_lag)
     raw_sequence_classes ./ bootstrap_sequence_classes_nonzero(raster, boundary, n_lag, t_lag, n_bootstraps, bootstraps_step)
 end
+
 
 # Don't memoize because raster is variable
 function bootstrap_sequence_classes(raster::Array{Bool}, boundary, n_lag::Int, t_lag::Int, n_bootstraps::Int)
@@ -15,9 +16,9 @@ end
     bootstrap_sequence_classes!(unshuffled_raster, boundary, n_lag, t_lag, n_bootstraps)
 end
 
-function bootstrap_sequence_classes!(inplace_src_raster, boundary, n_lag::Int, t_lag::Int, n_bootstraps::Int)
+function bootstrap_sequence_classes!(inplace_src, boundary, n_lag::Int, t_lag::Int, n_bootstraps::Int)
     bootstrap_tricorr = sum(
-        sequence_class_tricorr(shuffle!(inplace_src_raster), boundary, n_lag, t_lag) 
+        sequence_class_tricorr(shuffle!(inplace_src), boundary, n_lag, t_lag) 
             for _ ∈ 1:n_bootstraps
     )
     bootstrap_tricorr ./= n_bootstraps
@@ -45,6 +46,25 @@ end
     if n_bootstraps >= max_bootstraps
         @warn "BAD"
         @show boundary n t count_ones n_lag t_lag
+    end
+    sequence_class_bootstrapped ./= n_bootstraps
+    return sequence_class_bootstrapped
+end
+
+function bootstrap_sequence_classes_nonzero(arr::AbstractArray{<:AbstractFloat}, boundary, n_lag::Int, t_lag::Int, n_bootstraps::Int, bootstraps_step::Int)
+    inplace_arr = copy(arr)
+    max_bootstraps = n_bootstraps * 20
+    sequence_class_bootstrapped = bootstrap_sequence_classes!(inplace_arr, boundary, n_lag, t_lag, n_bootstraps) .* n_bootstraps
+    while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
+        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $((n_lag,t_lag))]"
+        n_bootstraps += bootstraps_step
+        sequence_class_bootstrapped += sum(
+            sequence_class_tricorr(shuffle!(unshuffled_raster), boundary, n_lag, t_lag) 
+                for _ ∈ 1:bootstraps_step
+        )
+    end
+    if n_bootstraps >= max_bootstraps
+        @warn "Degenerate array or something (all zeros)."
     end
     sequence_class_bootstrapped ./= n_bootstraps
     return sequence_class_bootstrapped

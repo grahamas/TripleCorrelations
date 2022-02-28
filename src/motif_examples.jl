@@ -182,6 +182,7 @@ end
 function rand_motif(motif_class::String, n_range::AbstractArray, t_range::AbstractArray, n_jitter, t_jitter)
     if motif_class == "I"
         motif = rand_I(n_range, t_range, n_jitter, t_jitter)
+        @show motif
         @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "II"
