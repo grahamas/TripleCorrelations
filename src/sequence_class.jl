@@ -51,6 +51,21 @@ function lag_contribution(data::D, boundary::ZeroPadded, n1::Int, t1::Int, n2::I
     return contribution
 end
 
+function lag_contribution(data::D, boundary::PeriodicExtended, n1::Int, t1::Int, n2::Int, t2::Int, data_λ₁=D(undef, size(data)), data_λ₂=D(undef, size(data))) where {T, D <: Matrix{T}}
+    # Periodic in n; extended in t
+    # FIXME should validate extension holds lags
+    t_start, t_end = boundary.t_bounds
+    contribution = 0
+    
+    circshift!(data_λ₁, data, (-n1, -t1))
+    circshift!(data_λ₂, data, (-n2, -t2))
+
+    @tturbo for n ∈ axes(data,1), t ∈ t_start:t_end
+        contribution += data[n,t] * data_λ₁[n,t] * data_λ₂[n,t]
+    end
+    return contribution
+end
+
 function sequence_class_tricorr_unrolled(data::AbstractArray, boundary::ZeroPadded, n_max_lag, t_max_lag)
     contributions = zeros(14)
     data = parent(data)
@@ -358,7 +373,7 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, boundary::ZeroPadd
 
 end
 
-function sequence_class_tricorr_unrolled(data::AbstractArray,boundary::Periodic, n_max_lag, t_max_lag)
+function sequence_class_tricorr_unrolled(data::AbstractArray,boundary::Union{Periodic,PeriodicExtended}, n_max_lag, t_max_lag)
     contributions = zeros(14)
     data = parent(data)
     lag1_cache = typeof(data)(undef, size(data))

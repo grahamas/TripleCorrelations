@@ -77,6 +77,9 @@ function calculate_scaling_factor(arr, ::Periodic)
     prod(size(arr))
 end
 
+function calculate_scaling_factor(arr, ::PeriodicExtended)
+    prod(size(arr))
+end
 
 _hi_bound(l1, l2, M) = M - max(0, l1, l2)
 _lo_bound(l1, l2) = 1 + min(0, l1, l2)
