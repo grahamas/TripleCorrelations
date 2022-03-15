@@ -77,7 +77,9 @@ end
         n_bootstraps += bootstraps_step
         
         sequence_class_bootstrapped += mapreduce(+, 1:bootstraps_step) do _
+            shuffle!(@view inplace_arr[:, 1:(t0-1)])
             shuffle!(@view inplace_arr[:, t0:t1])
+            shuffle!(@view inplace_arr[:, (t1+1):end])
             sequence_class_tricorr(inplace_arr, boundary, n_lag, t_lag)
         end
     end
