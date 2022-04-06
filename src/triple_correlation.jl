@@ -77,8 +77,10 @@ function calculate_scaling_factor(arr, ::Periodic)
     prod(size(arr))
 end
 
-function calculate_scaling_factor(arr, ::PeriodicExtended)
-    prod(size(arr))
+function calculate_scaling_factor(arr::AbstractMatrix, pe::PeriodicExtended)
+    return 1
+    scaling_factor = (pe.t_bounds[2] - pe.t_bounds[1]+1) * size(arr, 1)
+    return scaling_factor    
 end
 
 _hi_bound(l1, l2, M) = M - max(0, l1, l2)

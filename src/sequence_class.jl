@@ -1034,7 +1034,7 @@ end
 
 function sequence_class_tricorr!(class_contribution::AbstractVector, src::AbstractArray{T}, boundary::AbstractBoundaryCondition, space_max_lag, time_max_lag, lags_classifier::Function) where T
     src = parent(src)
-    space_lag_range = -(space_max_lag):(space_max_lag)        
+    space_lag_range = -(space_max_lag):(space_max_lag)       
     time_lag_range = -(time_max_lag):(time_max_lag)
 
     class_contribution .= 0
@@ -1053,7 +1053,7 @@ end
 
 # Periodic calculation
 
-function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, boundary::Periodic, space_max_lag, time_max_lag, lags_classifier::Function) where {T, SRC<:AbstractArray{T}}
+function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, boundary::Union{Periodic,PeriodicExtended}, space_max_lag, time_max_lag, lags_classifier::Function) where {T, SRC<:AbstractArray{T}}
     src = parent(src)
     lag1_cache = typeof(src)(undef, size(src))
     lag2_cache = typeof(src)(undef, size(src))
@@ -1070,6 +1070,8 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
     end
     class_contribution ./= calculate_scaling_factor(src, boundary)
 end
+
+
 
 
 function count_distinct(args...)
