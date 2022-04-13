@@ -1,7 +1,7 @@
 authors = ["Graham Smith <grahamas@gmail.com>"]
 name = "TripleCorrelations"
 uuid = "6a41bcfa-3301-11ec-2a0d-df01ea421e5a"
-version = "0.5.0"
+version = "0.5.1"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
