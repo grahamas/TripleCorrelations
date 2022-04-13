@@ -153,10 +153,14 @@ function rand_motif(n_range, t_range; n1_lag_range=0:0, t1_lag_range=0:0, n2_lag
     return ((n0, t0), (n1, t1), (n2, t2))
 end
 
+function offset_motif_numeral(n::Integer)
+    roman_encode_zero(n-1)
+end
 
 # https://www.rosettacode.org/wiki/Roman_numerals/Encode#Julia
-function roman_encode(n::Integer)
-    if n < 1 || n > 4999 throw(DomainError(n)) end
+function roman_encode_zero(n::Integer)
+    if n == 0 return "0" end
+    if n < 0 || n > 4999 throw(DomainError(n)) end
  
     DR = [["I", "X", "C", "M"] ["V", "L", "D", "MMM"]]
     rnum = ""
@@ -183,59 +187,59 @@ function rand_motif(motif_class::String, n_range::AbstractArray, t_range::Abstra
     if motif_class == "0"
         motif = rand_0(n_range, t_range, n_jitter, t_jitter)
         @show motif
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "I"
         motif = rand_I(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "II"
         motif = rand_II(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "III"
         motif = rand_III(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "IV"
         motif = rand_IV(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "V"
         motif = rand_V(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "VI"
         motif = rand_VI(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "VII"
         motif = rand_VII(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "VIII"
         motif = rand_VIII(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "X"
         motif = rand_X(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "IX"
         motif = rand_IX(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "XI"
         motif = rand_XI(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "XII"
         motif = rand_XII(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     elseif motif_class == "XIII"
         motif = rand_XIII(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == roman_encode(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
         motif
     else
         error("Invalid motif class: $motif_class")
