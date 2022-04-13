@@ -104,7 +104,7 @@ end
 function rand_IX(n_range, t_range, n_jitter, t_jitter)
     (n0, t0) = (rand(n_range), rand(t_range))
     n1_lag = 0
-    t1_lag = rand([-t_jitter:-2..., 2:t_jitter...])
+    t1_lag = rand([-t_jitter:-2...,2:t_jitter...])
     n2_lag = rand([-n_jitter:-1...,1:n_jitter...])
     t1_sgn = sign(t1_lag) * 1
     t2_lag = rand(t1_sgn:t1_sgn:(t1_lag-t1_sgn))
@@ -131,8 +131,8 @@ function rand_XIII(n_range, t_range, n_jitter, t_jitter)
     rand_motif(n_range, t_range; 
         n1_lag_range=[-n_jitter:-1..., 1:n_jitter...],
         n2_lag_range=[-n_jitter:-1..., 1:n_jitter...],
-        t1_lag_range=[-1:t_jitter..., 1:t_jitter...],
-        t2_lag_range=[-1:t_jitter..., 1:t_jitter...])
+        t1_lag_range=[-t_jitter:-1..., 1:t_jitter...],
+        t2_lag_range=[-t_jitter:-1..., 1:t_jitter...])
 end
 
 function rand_motif(n_range, t_range; n1_lag_range=0:0, t1_lag_range=0:0, n2_lag_range=0:0, t2_lag_range=0:0)
@@ -266,6 +266,7 @@ function rand_motif(motif_class::String, n_range::AbstractArray, t_range::Abstra
         motif
     elseif motif_class == "XIII"
         motif = rand_XIII(n_range, t_range, n_jitter, t_jitter)
+        @show motif
         @assert motif_class == offset_motif_numeral(
             lag_motif_sequence_class(motif...)
         )
