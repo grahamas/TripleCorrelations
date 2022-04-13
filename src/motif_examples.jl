@@ -44,7 +44,8 @@ motif_examples = Dict(
 )
 
 function rand_0(n_range, t_range, n_jitter, t_jitter)
-    ((rand(n_range), rand(t_range)),  (rand(n_range), rand(t_range)),  (rand(n_range), rand(t_range)))
+    point = (rand(n_range), rand(t_range))
+    (point, point, point)
 end
 
 function rand_I(n_range, t_range, n_jitter, t_jitter)
@@ -187,7 +188,6 @@ end
 function rand_motif(motif_class::String, n_range::AbstractArray, t_range::AbstractArray, n_jitter, t_jitter)
     if motif_class == "0"
         motif = rand_0(n_range, t_range, n_jitter, t_jitter)
-        @show motif
         @assert motif_class == offset_motif_numeral(
             lag_motif_sequence_class(motif...)
         )
