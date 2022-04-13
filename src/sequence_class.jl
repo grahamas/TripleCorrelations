@@ -247,38 +247,38 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, boundary::ZeroPadd
     # n1 == n2 ≠ 0 && t1 < t2 < 0
     @inbounds for n ∈ nonzero_n, t1 ∈ negative_t[begin:end-1]
         for t2 ∈ (t1+1):-1
-            contributions[10] += lag_contribution(data, boundary,  n, t1, n, t2)
+            contributions[11] += lag_contribution(data, boundary,  n, t1, n, t2)
         end
     end
     # Assume odd point (0,0)
     # n1 == n2 ≠ 0 && t2 < t1 < 0
     @inbounds for n ∈ nonzero_n, t1 ∈ negative_t[begin+1:end]
         for t2 ∈ negative_t[begin]:(t1-1)
-            contributions[10] += lag_contribution(data, boundary,  n, t1, n, t2)
+            contributions[11] += lag_contribution(data, boundary,  n, t1, n, t2)
         end
     end
     # Assume middle point (0,0); n2 odd
     # n1 == 0 && n2 ≠ 0 && t2 > 0 && t1 < 0
     @inbounds for t1 ∈ negative_t, n2 ∈ nonzero_n, t2 ∈ positive_t
-        contributions[10] += lag_contribution(data, boundary,  0, t1, n2, t2)
+        contributions[11] += lag_contribution(data, boundary,  0, t1, n2, t2)
     end
     # Assume middle point (0,0); n1 odd
     # n2 == 0 && n1 ≠ 0 && t1 > 0 && t2 < 0
     @inbounds for n1 ∈ nonzero_n, t1 ∈ positive_t, t2 ∈ negative_t
-        contributions[10] += lag_contribution(data, boundary,  n1, t1, 0, t2)
+        contributions[11] += lag_contribution(data, boundary,  n1, t1, 0, t2)
     end
     # Assume left point (0,0); n2 odd
     # n1 == 0 && n2 ≠ 0 && 0 < t1 < t2
     @inbounds for t1 ∈ positive_t[begin:end-1], n2 ∈ nonzero_n
         for t2 ∈ (t1+1):positive_t[end]
-            contributions[10] += lag_contribution(data, boundary,  0, t1, n2, t2)
+            contributions[11] += lag_contribution(data, boundary,  0, t1, n2, t2)
         end
     end
     # Assume left point (0,0); n1 odd
     # n2 == 0 && n1 ≠ 0 && 0 < t2 < t1
     @inbounds for n1 ∈ nonzero_n, t1 ∈ positive_t[begin+1:end]
         for t2 ∈ positive_t[begin]:(t1-1)
-            contributions[10] += lag_contribution(data, boundary,  n1, t1, 0, t2)
+            contributions[11] += lag_contribution(data, boundary,  n1, t1, 0, t2)
         end
     end
 
@@ -287,39 +287,39 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, boundary::ZeroPadd
     # n2 == 0; n1 ≠ 0; 0 < t1 < t2
     @inbounds for n1 ∈ nonzero_n, t1 ∈ positive_t[begin:end-1]
         for t2 ∈ (t1+1):positive_t[end]
-            contributions[11] += lag_contribution(data, boundary,  n1, t1, 0, t2)
+            contributions[10] += lag_contribution(data, boundary,  n1, t1, 0, t2)
         end
     end
     # Assume left point (0,0); n2 odd
     # n1 == 0; n2 ≠ 0; 0 < t2 < t1
     @inbounds for t1 ∈ positive_t[begin+1:end], n2 ∈ nonzero_n 
         for t2 ∈ 1:(t1-1)
-            contributions[11] += lag_contribution(data, boundary,  0, t1, n2, t2)
+            contributions[10] += lag_contribution(data, boundary,  0, t1, n2, t2)
         end
     end
     # Assume right point (0,0); n1 odd
     # n2 == 0; n1 ≠ 0; t2 < t1 < 0
     @inbounds for n1 ∈ nonzero_n, t1 ∈ negative_t[begin+1:end]
         for t2 ∈ negative_t[begin]:(t1-1)
-            contributions[11] += lag_contribution(data, boundary,  n1, t1, 0, t2)
+            contributions[10] += lag_contribution(data, boundary,  n1, t1, 0, t2)
         end
     end
     # Assume right point (0,0); n2 odd
     # n1 == 0; n2 ≠ 0; t1 < t2 < 0
     @inbounds for t1 ∈ negative_t[begin:end-1], n2 ∈ nonzero_n 
         for t2 ∈ (t1+1):-1
-            contributions[11] += lag_contribution(data, boundary,  0, t1, n2, t2)
+            contributions[10] += lag_contribution(data, boundary,  0, t1, n2, t2)
         end
     end
     # Assume middle point (0,0); n1 left
     # n1 == n2 ≠ 0; t1 < 0 < t2
     @inbounds for n ∈ nonzero_n, t1 ∈ negative_t, t2 ∈ positive_t
-        contributions[11] += lag_contribution(data, boundary,  n, t1, n, t2)
+        contributions[10] += lag_contribution(data, boundary,  n, t1, n, t2)
     end
     # Assume middle point (0,0); n2 left
     # n1 == n2 ≠ 0; t2 < 0 < t1
     @inbounds for n ∈ nonzero_n, t1 ∈ positive_t, t2 ∈ negative_t
-        contributions[11] += lag_contribution(data, boundary,  n, t1, n, t2)
+        contributions[10] += lag_contribution(data, boundary,  n, t1, n, t2)
     end
 
     # Class XII
@@ -556,38 +556,38 @@ function sequence_class_tricorr_unrolled(data::AbstractArray,boundary::Union{Per
     # n1 == n2 ≠ 0 && t1 < t2 < 0
     @inbounds for n ∈ nonzero_n, t1 ∈ negative_t[begin:end-1]
         for t2 ∈ (t1+1):-1
-            contributions[10] += lag_contribution(data, boundary, n, t1, n, t2,lag1_cache,lag2_cache)
+            contributions[11] += lag_contribution(data, boundary, n, t1, n, t2,lag1_cache,lag2_cache)
         end
     end
     # Assume odd point (0,0)
     # n1 == n2 ≠ 0 && t2 < t1 < 0
     @inbounds for n ∈ nonzero_n, t1 ∈ negative_t[begin+1:end]
         for t2 ∈ negative_t[begin]:(t1-1)
-            contributions[10] += lag_contribution(data, boundary, n, t1, n, t2,lag1_cache,lag2_cache)
+            contributions[11] += lag_contribution(data, boundary, n, t1, n, t2,lag1_cache,lag2_cache)
         end
     end
     # Assume middle point (0,0); n2 odd
     # n1 == 0 && n2 ≠ 0 && t2 > 0 && t1 < 0
     @inbounds for t1 ∈ negative_t, n2 ∈ nonzero_n, t2 ∈ positive_t
-        contributions[10] += lag_contribution(data, boundary, 0, t1, n2, t2,lag1_cache,lag2_cache)
+        contributions[11] += lag_contribution(data, boundary, 0, t1, n2, t2,lag1_cache,lag2_cache)
     end
     # Assume middle point (0,0); n1 odd
     # n2 == 0 && n1 ≠ 0 && t1 > 0 && t2 < 0
     @inbounds for n1 ∈ nonzero_n, t1 ∈ positive_t, t2 ∈ negative_t
-        contributions[10] += lag_contribution(data, boundary, n1, t1, 0, t2,lag1_cache,lag2_cache)
+        contributions[11] += lag_contribution(data, boundary, n1, t1, 0, t2,lag1_cache,lag2_cache)
     end
     # Assume left point (0,0); n2 odd
     # n1 == 0 && n2 ≠ 0 && 0 < t1 < t2
     @inbounds for t1 ∈ positive_t[begin:end-1], n2 ∈ nonzero_n
         for t2 ∈ (t1+1):positive_t[end]
-            contributions[10] += lag_contribution(data, boundary, 0, t1, n2, t2,lag1_cache,lag2_cache)
+            contributions[11] += lag_contribution(data, boundary, 0, t1, n2, t2,lag1_cache,lag2_cache)
         end
     end
     # Assume left point (0,0); n1 odd
     # n2 == 0 && n1 ≠ 0 && 0 < t2 < t1
     @inbounds for n1 ∈ nonzero_n, t1 ∈ positive_t[begin+1:end]
         for t2 ∈ positive_t[begin]:(t1-1)
-            contributions[10] += lag_contribution(data, boundary, n1, t1, 0, t2,lag1_cache,lag2_cache)
+            contributions[11] += lag_contribution(data, boundary, n1, t1, 0, t2,lag1_cache,lag2_cache)
         end
     end
 
@@ -596,39 +596,39 @@ function sequence_class_tricorr_unrolled(data::AbstractArray,boundary::Union{Per
     # n2 == 0; n1 ≠ 0; 0 < t1 < t2
     @inbounds for n1 ∈ nonzero_n, t1 ∈ positive_t[begin:end-1]
         for t2 ∈ (t1+1):positive_t[end]
-            contributions[11] += lag_contribution(data, boundary, n1, t1, 0, t2,lag1_cache,lag2_cache)
+            contributions[10] += lag_contribution(data, boundary, n1, t1, 0, t2,lag1_cache,lag2_cache)
         end
     end
     # Assume left point (0,0); n2 odd
     # n1 == 0; n2 ≠ 0; 0 < t2 < t1
     @inbounds for t1 ∈ positive_t[begin+1:end], n2 ∈ nonzero_n 
         for t2 ∈ 1:(t1-1)
-            contributions[11] += lag_contribution(data, boundary, 0, t1, n2, t2,lag1_cache,lag2_cache)
+            contributions[10] += lag_contribution(data, boundary, 0, t1, n2, t2,lag1_cache,lag2_cache)
         end
     end
     # Assume right point (0,0); n1 odd
     # n2 == 0; n1 ≠ 0; t2 < t1 < 0
     @inbounds for n1 ∈ nonzero_n, t1 ∈ negative_t[begin+1:end]
         for t2 ∈ negative_t[begin]:(t1-1)
-            contributions[11] += lag_contribution(data, boundary, n1, t1, 0, t2,lag1_cache,lag2_cache)
+            contributions[10] += lag_contribution(data, boundary, n1, t1, 0, t2,lag1_cache,lag2_cache)
         end
     end
     # Assume right point (0,0); n2 odd
     # n1 == 0; n2 ≠ 0; t1 < t2 < 0
     @inbounds for t1 ∈ negative_t[begin:end-1], n2 ∈ nonzero_n 
         for t2 ∈ (t1+1):-1
-            contributions[11] += lag_contribution(data, boundary, 0, t1, n2, t2,lag1_cache,lag2_cache)
+            contributions[10] += lag_contribution(data, boundary, 0, t1, n2, t2,lag1_cache,lag2_cache)
         end
     end
     # Assume middle point (0,0); n1 left
     # n1 == n2 ≠ 0; t1 < 0 < t2
     @inbounds for n ∈ nonzero_n, t1 ∈ negative_t, t2 ∈ positive_t
-        contributions[11] += lag_contribution(data, boundary, n, t1, n, t2,lag1_cache,lag2_cache)
+        contributions[10] += lag_contribution(data, boundary, n, t1, n, t2,lag1_cache,lag2_cache)
     end
     # Assume middle point (0,0); n2 left
     # n1 == n2 ≠ 0; t2 < 0 < t1
     @inbounds for n ∈ nonzero_n, t1 ∈ positive_t, t2 ∈ negative_t
-        contributions[11] += lag_contribution(data, boundary, n, t1, n, t2,lag1_cache,lag2_cache)
+        contributions[10] += lag_contribution(data, boundary, n, t1, n, t2,lag1_cache,lag2_cache)
     end
 
     # Class XII
@@ -861,38 +861,38 @@ function sequence_class_tricorr_unrolled(tricorr::TripleCorrelation)
     # n1 == n2 ≠ 0 && t1 < t2 < 0
     for n ∈ nonzero_n, t1 ∈ negative_t[begin:end-1]
         for t2 ∈ (t1+1):-1
-            contributions[10] += arr[n, t1, n, t2]
+            contributions[11] += arr[n, t1, n, t2]
         end
     end
     # Assume odd point (0,0)
     # n1 == n2 ≠ 0 && t2 < t1 < 0
     for n ∈ nonzero_n, t1 ∈ negative_t[begin+1:end]
         for t2 ∈ negative_t[begin]:(t1-1)
-            contributions[10] += arr[n, t1, n, t2]
+            contributions[11] += arr[n, t1, n, t2]
         end
     end
     # Assume middle point (0,0); n2 odd
     # n1 == 0 && n2 ≠ 0 && t2 > 0 && t1 < 0
     for t1 ∈ negative_t, n2 ∈ nonzero_n, t2 ∈ positive_t
-        contributions[10] += arr[0, t1, n2, t2]
+        contributions[11] += arr[0, t1, n2, t2]
     end
     # Assume middle point (0,0); n1 odd
     # n2 == 0 && n1 ≠ 0 && t1 > 0 && t2 < 0
     for n1 ∈ nonzero_n, t1 ∈ positive_t, t2 ∈ negative_t
-        contributions[10] += arr[n1, t1, 0, t2]
+        contributions[11] += arr[n1, t1, 0, t2]
     end
     # Assume left point (0,0); n2 odd
     # n1 == 0 && n2 ≠ 0 && 0 < t1 < t2
     for t1 ∈ positive_t[begin:end-1], n2 ∈ nonzero_n
         for t2 ∈ (t1+1):positive_t[end]
-            contributions[10] += arr[0, t1, n2, t2]
+            contributions[11] += arr[0, t1, n2, t2]
         end
     end
     # Assume left point (0,0); n1 odd
     # n2 == 0 && n1 ≠ 0 && 0 < t2 < t1
     for n1 ∈ nonzero_n, t1 ∈ positive_t[begin+1:end]
         for t2 ∈ positive_t[begin]:(t1-1)
-            contributions[10] += arr[n1, t1, 0, t2]
+            contributions[11] += arr[n1, t1, 0, t2]
         end
     end
 
@@ -901,39 +901,39 @@ function sequence_class_tricorr_unrolled(tricorr::TripleCorrelation)
     # n2 == 0; n1 ≠ 0; 0 < t1 < t2
     for n1 ∈ nonzero_n, t1 ∈ positive_t[begin:end-1]
         for t2 ∈ (t1+1):positive_t[end]
-            contributions[11] += arr[n1, t1, 0, t2]
+            contributions[10] += arr[n1, t1, 0, t2]
         end
     end
     # Assume left point (0,0); n2 odd
     # n1 == 0; n2 ≠ 0; 0 < t2 < t1
     for t1 ∈ positive_t[begin+1:end], n2 ∈ nonzero_n 
         for t2 ∈ 1:(t1-1)
-            contributions[11] += arr[0, t1, n2, t2]
+            contributions[10] += arr[0, t1, n2, t2]
         end
     end
     # Assume right point (0,0); n1 odd
     # n2 == 0; n1 ≠ 0; t2 < t1 < 0
     for n1 ∈ nonzero_n, t1 ∈ negative_t[begin+1:end]
         for t2 ∈ negative_t[begin]:(t1-1)
-            contributions[11] += arr[n1, t1, 0, t2]
+            contributions[10] += arr[n1, t1, 0, t2]
         end
     end
     # Assume right point (0,0); n2 odd
     # n1 == 0; n2 ≠ 0; t1 < t2 < 0
     for t1 ∈ negative_t[begin:end-1], n2 ∈ nonzero_n 
         for t2 ∈ (t1+1):-1
-            contributions[11] += arr[0, t1, n2, t2]
+            contributions[10] += arr[0, t1, n2, t2]
         end
     end
     # Assume middle point (0,0); n1 left
     # n1 == n2 ≠ 0; t1 < 0 < t2
     for n ∈ nonzero_n, t1 ∈ negative_t, t2 ∈ positive_t
-        contributions[11] += arr[n, t1, n, t2]
+        contributions[10] += arr[n, t1, n, t2]
     end
     # Assume middle point (0,0); n2 left
     # n1 == n2 ≠ 0; t2 < 0 < t1
     for n ∈ nonzero_n, t1 ∈ positive_t, t2 ∈ negative_t
-        contributions[11] += arr[n, t1, n, t2]
+        contributions[10] += arr[n, t1, n, t2]
     end
 
     # Class XII
@@ -1121,12 +1121,12 @@ function _2_channel_seq_class(n1, n2, t1, t2)
     elseif n_distinct_times == 3
         if (n1 == 0)
             if (0 < t1)
-                return 10
+                return 11
             elseif (t1 < 0)
                 if t2 < 0
-                    return 11
-                elseif t2 > 0
                     return 10
+                elseif t2 > 0
+                    return 11
                 else
                     error("Shouldn't be here")
                 end
@@ -1138,7 +1138,7 @@ function _2_channel_seq_class(n1, n2, t1, t2)
                 return 9
             elseif (t2 > 0)
                 if t1 > 0 # in between
-                    return 11
+                    return 10
                 elseif t1 < 0
                     return 9
                 else
@@ -1151,9 +1151,9 @@ function _2_channel_seq_class(n1, n2, t1, t2)
             if (0 < t1)
                 return 9
             elseif (t1 < 0 < t2)
-                return 11
-            elseif (t2 < 0)
                 return 10
+            elseif (t2 < 0)
+                return 11
             else
                 error("Shouldn't be here")
             end
@@ -1192,6 +1192,14 @@ function _3_channel_seq_class(n1, n2, t1, t2)
     else
         error("Invalid number of same times: $n_distinct_times")
     end
+end
+
+function lag_motif_sequence_class(p0::T, p1::T, p2::T) where {T <: NTuple{2}}
+    n1 = p1[1] - p0[1]
+    n2 = p2[1] - p0[1]
+    t1 = p1[2] - p0[2]
+    t2 = p2[2] - p0[2]
+    lag_motif_sequence_class(n1, n2, t1, t2)
 end
 
 function lag_motif_sequence_class(tup::NTuple{4})

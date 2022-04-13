@@ -103,9 +103,10 @@ end
 function rand_IX(n_range, t_range, n_jitter, t_jitter)
     (n0, t0) = (rand(n_range), rand(t_range))
     n1_lag = 0
-    t1_lag = rand(2:t_jitter)
-    n2_lag = rand([-n_jitter:-1...,1:n_jitter])
-    t2_lag = rand(1:t1_lag)
+    t1_lag = rand([-t_jitter:-2..., 2:t_jitter...])
+    n2_lag = rand([-n_jitter:-1...,1:n_jitter...])
+    t1_sgn = sign(t1_lag) * 1
+    t2_lag = rand(t1_sgn:t1_sgn:(t1_lag-t1_sgn))
     (n1, t1) = (n0 + n1_lag, t0 + t1_lag)
     (n2, t2) = (n0 + n2_lag, t0 + t2_lag)
     return ((n0, t0), (n1, t1), (n2, t2))
@@ -187,59 +188,87 @@ function rand_motif(motif_class::String, n_range::AbstractArray, t_range::Abstra
     if motif_class == "0"
         motif = rand_0(n_range, t_range, n_jitter, t_jitter)
         @show motif
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     elseif motif_class == "I"
         motif = rand_I(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     elseif motif_class == "II"
         motif = rand_II(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     elseif motif_class == "III"
         motif = rand_III(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     elseif motif_class == "IV"
         motif = rand_IV(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     elseif motif_class == "V"
         motif = rand_V(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     elseif motif_class == "VI"
         motif = rand_VI(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     elseif motif_class == "VII"
         motif = rand_VII(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     elseif motif_class == "VIII"
         motif = rand_VIII(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     elseif motif_class == "X"
         motif = rand_X(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     elseif motif_class == "IX"
         motif = rand_IX(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        ) (motif, motif_class)
         motif
     elseif motif_class == "XI"
         motif = rand_XI(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     elseif motif_class == "XII"
         motif = rand_XII(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     elseif motif_class == "XIII"
         motif = rand_XIII(n_range, t_range, n_jitter, t_jitter)
-        @assert motif_class == offset_motif_numeral(lag_motif_sequence_class(motif[2][1] - motif[1][1], motif[3][1] - motif[1][1], motif[2][2] - motif[1][2], motif[3][2] - motif[1][2]))
+        @assert motif_class == offset_motif_numeral(
+            lag_motif_sequence_class(motif...)
+        )
         motif
     else
         error("Invalid motif class: $motif_class")
