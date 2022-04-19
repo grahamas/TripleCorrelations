@@ -11,6 +11,7 @@ n = 5
 
 #         contributions_0 = sequence_class_tricorr(raster_0, l, l)
 #         @test contributions_0[1] == sum(raster_0) / prod(size(raster_0)) && all(contributions_0[begin+1:end] .== 0)
+#         @test contributions_0[10] == 0
 #     end
 
 #     @testset "Sequence Motif I" begin
@@ -134,6 +135,7 @@ n = 5
 
         contributions_0 = sequence_class_tricorr(raster_0, ZeroPadded(), l, l)
         @test contributions_0[1] == sum(raster_0) / prod(size(raster_0)) && all(contributions_0[begin+1:end] .== 0)
+        @test contributions_0[10] == 0
     end
 
     @testset "Sequence Motif I" begin
@@ -219,14 +221,14 @@ n = 5
         raster_X = TripleCorrelations.repeat_padded_motif("X", l, l, n, n)
 
         contributions_X = sequence_class_tricorr(raster_X, ZeroPadded(), l, l)
-        @test contributions_X[10] > 0 && all(contributions_X[begin+10:end] .== 0)
+        @test contributions_X[11] > 0 && all(contributions_X[begin+11:end] .== 0)
     end
 
     @testset "Sequence Motif IX" begin
         raster_IX = TripleCorrelations.repeat_padded_motif("IX", l, l, n, n)
 
         contributions_IX = sequence_class_tricorr(raster_IX, ZeroPadded(), l, l)
-        @test contributions_IX[11] > 0 && all(contributions_IX[begin+11:end] .== 0)
+        @test contributions_IX[10] > 0 && all(contributions_IX[begin+10:end] .== 0)
     end
 
     @testset "Sequence Motif XI" begin
@@ -257,6 +259,7 @@ end
 
         contributions_0 = sequence_class_tricorr_unrolled(raster_0, ZeroPadded(), l, l)
         @test contributions_0[1] == sum(raster_0) / prod(size(raster_0)) && all(contributions_0[begin+1:end] .== 0)
+        @test contributions_0[10] == 0
     end
 
     @testset "Sequence Motif I" begin
@@ -342,14 +345,14 @@ end
         raster_X = TripleCorrelations.repeat_padded_motif("X", l, l, n, n)
 
         contributions_X = sequence_class_tricorr_unrolled(raster_X, ZeroPadded(), l, l)
-        @test contributions_X[10] > 0 && all(contributions_X[begin+10:end] .== 0)
+        @test contributions_X[11] > 0 && all(contributions_X[begin+11:end] .== 0)
     end
 
     @testset "Sequence Motif IX" begin
         raster_IX = TripleCorrelations.repeat_padded_motif("IX", l, l, n, n)
 
         contributions_IX = sequence_class_tricorr_unrolled(raster_IX, ZeroPadded(), l, l)
-        @test contributions_IX[11] > 0 && all(contributions_IX[begin+11:end] .== 0)
+        @test contributions_IX[10] > 0 && all(contributions_IX[begin+10:end] .== 0)
     end
 
     @testset "Sequence Motif XI" begin
@@ -380,6 +383,7 @@ end
 
         contributions_0 = sequence_class_tricorr(raster_0, Periodic(), l, l)
         @test contributions_0[1] == sum(raster_0) / prod(size(raster_0)) && all(contributions_0[begin+1:end] .== 0)
+        @test contributions_0[10] == 0
     end
 
     @testset "Sequence Motif I" begin
@@ -465,14 +469,14 @@ end
         raster_X = TripleCorrelations.repeat_padded_motif("X", l, l, n, n)
 
         contributions_X = sequence_class_tricorr(raster_X, Periodic(), l, l)
-        @test contributions_X[10] > 0 && all(contributions_X[begin+10:end] .== 0)
+        @test contributions_X[11] > 0 && all(contributions_X[begin+11:end] .== 0)
     end
 
     @testset "Sequence Motif IX" begin
         raster_IX = TripleCorrelations.repeat_padded_motif("IX", l, l, n, n)
 
         contributions_IX = sequence_class_tricorr(raster_IX, Periodic(), l, l)
-        @test contributions_IX[11] > 0 && all(contributions_IX[begin+11:end] .== 0)
+        @test contributions_IX[10] > 0 && all(contributions_IX[begin+10:end] .== 0)
     end
 
     @testset "Sequence Motif XI" begin
@@ -504,6 +508,7 @@ end
 
         contributions_0 = sequence_class_tricorr_unrolled(raster_0, Periodic(), l, l)
         @test contributions_0[1] == sum(raster_0) / prod(size(raster_0)) && all(contributions_0[begin+1:end] .== 0)
+        @test contributions_0[10] == 0
     end
 
     @testset "Sequence Motif I" begin
@@ -589,14 +594,14 @@ end
         raster_X = TripleCorrelations.repeat_padded_motif("X", l, l, n, n)
 
         contributions_X = sequence_class_tricorr_unrolled(raster_X, Periodic(), l, l)
-        @test contributions_X[10] > 0 && all(contributions_X[begin+10:end] .== 0)
+        @test contributions_X[11] > 0 && all(contributions_X[begin+11:end] .== 0)
     end
 
     @testset "Sequence Motif IX" begin
         raster_IX = TripleCorrelations.repeat_padded_motif("IX", l, l, n, n)
 
         contributions_IX = sequence_class_tricorr_unrolled(raster_IX, Periodic(), l, l)
-        @test contributions_IX[11] > 0 && all(contributions_IX[begin+11:end] .== 0)
+        @test contributions_IX[10] > 0 && all(contributions_IX[begin+10:end] .== 0)
     end
 
     @testset "Sequence Motif XI" begin

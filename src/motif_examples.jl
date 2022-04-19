@@ -266,7 +266,6 @@ function rand_motif(motif_class::String, n_range::AbstractArray, t_range::Abstra
         motif
     elseif motif_class == "XIII"
         motif = rand_XIII(n_range, t_range, n_jitter, t_jitter)
-        @show motif
         @assert motif_class == offset_motif_numeral(
             lag_motif_sequence_class(motif...)
         )

@@ -282,7 +282,7 @@ function sequence_class_tricorr_unrolled(data::AbstractArray, boundary::ZeroPadd
         end
     end
 
-    # Class XI
+    # Class IX
     # Assume left point (0,0); n1 odd
     # n2 == 0; n1 ≠ 0; 0 < t1 < t2
     @inbounds for n1 ∈ nonzero_n, t1 ∈ positive_t[begin:end-1]
