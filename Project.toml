@@ -1,6 +1,6 @@
-authors = ["Graham Smith <grahamas@gmail.com>"]
 name = "TripleCorrelations"
 uuid = "6a41bcfa-3301-11ec-2a0d-df01ea421e5a"
+authors = ["Graham Smith <grahamas@gmail.com>"]
 version = "0.5.3"
 
 [deps]
