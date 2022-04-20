@@ -16,8 +16,6 @@ export TripleCorrelation, triple_correlation
 
 include("sequence_class.jl")
 export sequence_class_tricorr, sequence_class_tricorr!
-export sequence_class_tricorr_unrolled,
-    sequence_class_tricorr_unrolled
 
 include("bootstrap.jl")
 export bootstrap_sequence_classes, bootstrap_sequence_classes_nonzero,
