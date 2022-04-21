@@ -12,30 +12,32 @@ function lag_contribution(data::D, boundary::Periodic, p1::NTuple{N,Int}, p2::NT
     return contribution
 end
 
-function lag_contribution(data::D, boundary::ZeroPadded, (n1,t1), (n2,t2)) where {T, D <: AbstractArray{T,2}}
+
+function lag_contribution(data::D, boundary::ZeroPadded, λ₁::NTuple{N}, λ₂::NTuple{N}) where {T,N, D <: AbstractArray{T,N}}
+    λ_starts = map(λ₁, λ₂) do p1, p2
+        max(1 - min(p1, p2), 1)
+    end
+    λ_stops = map(λ₁, λ₂, size(data)) do p1, p2, dim_max
+        min(dim_max - max(p1, p2), dim_max)
+    end
+
+    base_ranges = map(λ_starts, λ_stops) do start, stop
+        UnitRange(start, stop)
+    end
+    λ₁_ranges = map(base_ranges, λ₁) do range, p
+        range .+ p
+    end
+    λ₂_ranges = map(base_ranges, λ₂) do range, p
+        range .+ p
+    end
+
+    A = @view data[base_ranges...]
+    A_λ₁ = @view data[λ₁_ranges...]
+    A_λ₂ = @view data[λ₂_ranges...]
+
     contribution = 0
-
-
-    n_start = max(1 - min(n1, n2), 1)
-    t_start = max(1 - min(t1, t2), 1)
-    n_end = min(size(data,1) - max(n1,n2), size(data,1))
-    t_end = min(size(data,2) - max(t1,t2), size(data,2))
-
-    base_n_range = n_start:n_end
-    base_t_range = t_start:t_end
-
-    λ₁_n_range = base_n_range .+ n1
-    λ₁_t_range = base_t_range .+ t1
-
-    λ₂_n_range = base_n_range .+ n2
-    λ₂_t_range = base_t_range .+ t2
-
-    A = @view data[base_n_range, base_t_range]
-    A_λ₁ = @view data[λ₁_n_range, λ₁_t_range]
-    A_λ₂ = @view data[λ₂_n_range, λ₂_t_range]
-
-    @tturbo for n ∈ axes(A, 1), t ∈ axes(A, 2)
-        contribution += A[n,t] * A_λ₁[n,t] * A_λ₂[n,t]
+    @tturbo for p ∈ CartesianIndices(A)
+        contribution += A[p] * A_λ₁[p] * A_λ₂[p]
     end
     return contribution
 end
