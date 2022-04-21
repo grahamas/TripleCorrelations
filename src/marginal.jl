@@ -1,6 +1,6 @@
 
 
-function time_tricorr_zeropad!(time_contribution_offset::OffsetMatrix, src::AbstractArray{T}, space_max_lag, time_max_lag) where T
+function time_tricorr_zeropad!(time_contribution_offset::OffsetMatrix, src::AbstractArray{T}, max_lags) where T
     time_contribution = parent(time_contribution_offset)
     space_lag_range = -(space_max_lag):(space_max_lag)    
     time_lag_range = -(time_max_lag):(time_max_lag)
@@ -31,14 +31,14 @@ function time_tricorr_zeropad!(time_contribution_offset::OffsetMatrix, src::Abst
         end
         time_contribution[t1i, t2i] = contribution
     end
-    time_contribution ./ calculate_scaling_factor(src, (space_max_lag, time_max_lag))
+    time_contribution ./ calculate_scaling_factor(src, (max_lags))
     return
 end
 
-function time_tricorr_zeropad(src, space_max_lag, time_max_lag)
+function time_tricorr_zeropad(src, max_lags)
     time_lag_range = -(time_max_lag):time_max_lag
     time_contributions = OffsetArray{Float64}(undef, time_lag_range, time_lag_range)
-    time_tricorr_zeropad!(time_contributions, src, space_max_lag, time_max_lag)
+    time_tricorr_zeropad!(time_contributions, src, max_lags)
     return time_contributions
 end
 
@@ -48,7 +48,7 @@ end
 
 #### Space time
 
-function space_time_tricorr_zeropad!(space_time_contribution_offset::OffsetMatrix, src::AbstractArray{T}, space_max_lag, time_max_lag) where T
+function space_time_tricorr_zeropad!(space_time_contribution_offset::OffsetMatrix, src::AbstractArray{T}, max_lags) where T
     space_time_contribution = parent(space_time_contribution_offset)
     space_lag_range = -(space_max_lag):(space_max_lag)    
     time_lag_range = -(time_max_lag):(time_max_lag)
@@ -80,15 +80,15 @@ function space_time_tricorr_zeropad!(space_time_contribution_offset::OffsetMatri
         end
         space_time_contribution[n1i, t1i] = contribution
     end
-    space_time_contribution ./= calculate_scaling_factor(src, (space_max_lag, time_max_lag))
+    space_time_contribution ./= calculate_scaling_factor(src, (max_lags))
     return
 end
 
-function space_time_tricorr_zeropad(src, space_max_lag, time_max_lag)
+function space_time_tricorr_zeropad(src, max_lags)
     time_lag_range = -(time_max_lag):time_max_lag
     space_lag_range = -(space_max_lag):space_max_lag
     space_time_contributions = OffsetArray{Float64}(undef, space_lag_range, time_lag_range)
-    space_time_tricorr_zeropad!(space_time_contributions, src, space_max_lag, time_max_lag)
+    space_time_tricorr_zeropad!(space_time_contributions, src, max_lags)
     return space_time_contributions
 end
 
@@ -99,7 +99,7 @@ end
 
 ###### Space
 
-function space_tricorr_zeropad!(space_contribution_offset::OffsetMatrix, src::AbstractArray{T}, space_max_lag, time_max_lag) where T
+function space_tricorr_zeropad!(space_contribution_offset::OffsetMatrix, src::AbstractArray{T}, max_lags) where T
     space_contribution = parent(space_contribution_offset)
     space_lag_range = -(space_max_lag):(space_max_lag)    
     time_lag_range = -(time_max_lag):(time_max_lag)
@@ -131,14 +131,14 @@ function space_tricorr_zeropad!(space_contribution_offset::OffsetMatrix, src::Ab
         end
         space_contribution[n1i, n2i] = contribution
     end
-    space_contribution ./= calculate_scaling_factor(src, (space_max_lag, time_max_lag))
+    space_contribution ./= calculate_scaling_factor(src, (max_lags))
     return
 end
 
-function space_tricorr_zeropad(src, space_max_lag, time_max_lag)
+function space_tricorr_zeropad(src, max_lags)
     space_lag_range = -(space_max_lag):space_max_lag
     space_contributions = OffsetArray{Float64}(undef, space_lag_range, space_lag_range)
-    space_tricorr_zeropad!(space_contributions, src, space_max_lag, time_max_lag)
+    space_tricorr_zeropad!(space_contributions, src, max_lags)
     return space_contributions
 end
 
@@ -149,7 +149,7 @@ end
 
 #### Marginal
 
-function marginal_tricorr_zeropad!(marginal_contributions_offset::NamedTuple, src::AbstractArray{T}, space_max_lag, time_max_lag) where T
+function marginal_tricorr_zeropad!(marginal_contributions_offset::NamedTuple, src::AbstractArray{T}, max_lags) where T
     
     time_contribution_offset = marginal_contributions_offset.time
     space_time_contribution_offset = marginal_contributions_offset.space_time
@@ -192,21 +192,21 @@ function marginal_tricorr_zeropad!(marginal_contributions_offset::NamedTuple, sr
         space_time_contribution[n1i, t1i] += contribution
         space_contribution[n1i, n2i] += contribution
     end
-    scaling = calculate_scaling_factor(src, (space_max_lag, time_max_lag))
+    scaling = calculate_scaling_factor(src, (max_lags))
     time_contribution ./= scaling
     space_time_contribution ./= scaling
     space_contribution ./= scaling
     return
 end
 
-function marginal_tricorr_zeropad(src, space_max_lag, time_max_lag)
+function marginal_tricorr_zeropad(src, max_lags)
     time_lag_range = -(time_max_lag):time_max_lag
     space_lag_range = -(space_max_lag):space_max_lag
     space_time_contributions = OffsetArray{Float64}(undef, space_lag_range, time_lag_range)
     time_contributions = OffsetArray{Float64}(undef, time_lag_range, time_lag_range)
     space_contributions = OffsetArray{Float64}(undef, space_lag_range, space_lag_range)
     marginal_contributions = (time=time_contributions, space=space_contributions, space_time=space_time_contributions)
-    marginal_tricorr_zeropad!(marginal_contributions, src, space_max_lag, time_max_lag)
+    marginal_tricorr_zeropad!(marginal_contributions, src, max_lags)
     return marginal_contributions
 end
 

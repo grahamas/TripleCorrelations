@@ -1,8 +1,6 @@
 using TripleCorrelations
 using Test, BenchmarkTools
 
-include("src/helpers.jl")
-
 testdatadir(x...) = joinpath("data", x...)
 
 @testset "Network Motif I" begin

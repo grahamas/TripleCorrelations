@@ -1,9 +1,10 @@
 module TripleCorrelations
 
-using LoopVectorization, OffsetArrays, PaddedViews, IterTools
+using LoopVectorization, OffsetArrays, PaddedViews, Base.Iterators
 using CSV, Tables
 using Memoize
 using Random
+using Base.Threads, ThreadsX
 
 include("motif_examples.jl")
 export rand_motif

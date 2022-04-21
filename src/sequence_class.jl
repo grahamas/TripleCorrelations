@@ -1,5 +1,4 @@
 # Truncating calculation
-using Base.Threads, ThreadsX
 
 function lag_contribution(data::D, boundary::Periodic, p1::NTuple{N,Int}, p2::NTuple{N,Int}, data_λ₁=D(undef, size(data)), data_λ₂=D(undef, size(data))) where {N, T, D <: AbstractArray{T}}
     # Assume ns, ts < size(data)
@@ -13,8 +12,9 @@ function lag_contribution(data::D, boundary::Periodic, p1::NTuple{N,Int}, p2::NT
     return contribution
 end
 
-function lag_contribution(data::D, boundary::ZeroPadded, n1::Int, t1::Int, n2::Int, t2::Int) where {T, D <: AbstractArray{T,2}}
+function lag_contribution(data::D, boundary::ZeroPadded, (n1,t1), (n2,t2)) where {T, D <: AbstractArray{T,2}}
     contribution = 0
+
 
     n_start = max(1 - min(n1, n2), 1)
     t_start = max(1 - min(t1, t2), 1)
@@ -82,7 +82,7 @@ function lag_sequence_class_contributions(tricorr::TripleCorrelation)
 end
 
 # # FIXME is this zeropadding?
-# function sequence_class_tricorr!(class_contribution::AbstractVector, src, boundary:: space_max_lag, time_max_lag, lags_classifier::Function)
+# function sequence_class_tricorr!(class_contribution::AbstractVector, src, boundary:: max_lags, lags_classifier::Function)
 #     src = parent(src)
 
 #     space_lag_range = -(space_max_lag):(space_max_lag)        
@@ -108,12 +108,12 @@ end
 #     class_contribution ./= calculate_scaling_factor_zeropad(src)
 # end
 
-function sequence_class_tricorr(src, boundary::AbstractBoundaryCondition, space_max_lag, time_max_lag)
+function sequence_class_tricorr(src, boundary::AbstractBoundaryCondition, max_lags)
     N_network_classifications = 14
     network_class_contributions = Array{Float64}(undef, N_network_classifications)
     lags_classifier = lag_motif_sequence_class
 
-    sequence_class_tricorr!(network_class_contributions, src, boundary, space_max_lag, time_max_lag, lags_classifier)
+    sequence_class_tricorr!(network_class_contributions, src, boundary, max_lags, lags_classifier)
 end
 
 function sequence_class_tricorr!(class_contribution::AbstractVector, src::AbstractArray{T}, boundary::AbstractBoundaryCondition, max_lags, lags_classifier::Function) where T
@@ -122,7 +122,7 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::Abstra
     lag_ranges = map(((start,stop),) -> UnitRange(start,stop), zip(.-max_lags, max_lags))
 
     class_contribution .= 0
-    for λ₁ ∈ IterTools.product(lag_ranges...), λ₂ ∈ IterTools.product(lag_ranges...)
+    for λ₁ ∈ Iterators.product(lag_ranges...), λ₂ ∈ Iterators.product(lag_ranges...)
         class = lags_classifier(λ₁, λ₂) #FIXME function call
         contribution = lag_contribution(src, boundary, λ₁, λ₂)
         class_contribution[class] += contribution
@@ -144,7 +144,7 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
     lag_ranges = map(((start,stop),) -> UnitRange(start,stop), zip(.-max_lags, max_lags))
 
     class_contribution .= 0
-    for λ₁ ∈ IterTools.product(lag_ranges...), λ₂ ∈ IterTools.product(lag_ranges...)
+    for λ₁ ∈ Iterators.product(lag_ranges...), λ₂ ∈ Iterators.product(lag_ranges...)
         class = lags_classifier(λ₁, λ₂)
         contribution = lag_contribution(src, boundary, λ₁, λ₂, lag1_cache, lag2_cache)
         class_contribution[class] += contribution
@@ -275,16 +275,16 @@ function _3_channel_seq_class(n1, n2, t1, t2)
     end
 end
 
-function lag_motif_sequence_class(p0::T, p1::T, p2::T) where {T <: NTuple{2}}
-    λ₁ = p1 .- p0
-    λ₂ = p2 .- p0
-    lag_motif_sequence_class(λ₁, λ₂)
-end
+# function lag_motif_sequence_class(p0::T, p1::T, p2::T) where {T <: NTuple{2}}
+#     λ₁ = p1 .- p0
+#     λ₂ = p2 .- p0
+#     lag_motif_sequence_class(λ₁, λ₂)
+# end
 
 function lag_motif_sequence_class(λ₁::NT, λ₂::NT) where {N, T, NT <: NTuple{N,T}}
     n1 = λ₁[1:end-1]; t1 = λ₁[end]
     n2 = λ₂[1:end-1]; t2 = λ₂[end]
-    n_distinct_neurons = count_distinct(zero.(λ₁), n1, n2)
+    n_distinct_neurons = count_distinct(zero.(n1), n1, n2)
 
     n1, n2, t1, t2 = if t1 < t2
         (n1, n2, t1, t2)
