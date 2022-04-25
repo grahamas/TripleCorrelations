@@ -25,12 +25,12 @@ end
 function lag_contribution_pre_shifted(data::D, t1, t2, boundary::PeriodicExtended, data_λ₁, data_λ₂) where {N, T, D <: AbstractArray{T}}
     # Periodic in n; extended in t
     # FIXME should validate extension holds lags
-    t_start, t_end = boundary.t_bounds
+    bd = boundary.boundary
     contribution = 0
 
-    data_view = view_slice_last(data, t_start:t_end)
-    data_λ₁_view = view_slice_last(data_λ₁, (t_start:t_end) .+ t1)
-    data_λ₂_view = view_slice_last(data_λ₂, (t_start:t_end) .+ t2)
+    data_view = view_slice_last(data, (bd+1):(size(data)[end] - bd))
+    data_λ₁_view = view_slice_last(data_λ₁, ((bd+1):(size(data)[end] - bd) .+ t1))
+    data_λ₂_view = view_slice_last(data_λ₂, ((bd+1):(size(data)[end] - bd) .+ t2))
 
     @tturbo for p ∈ CartesianIndices(data_view)
         contribution += data_view[p] * data_λ₁_view[p] * data_λ₂_view[p]
@@ -83,15 +83,15 @@ end
 function lag_contribution(data::D, boundary::PeriodicExtended, λ₁::NTuple{N,Int}, λ₂::NTuple{N,Int}, data_λ₁=D(undef, size(data)), data_λ₂=D(undef, size(data))) where {N, T, D <: AbstractArray{T}}
     # Periodic in n; extended in t
     # FIXME should validate extension holds lags
-    t_start, t_end = boundary.t_bounds
+    bd = boundary.boundary
     contribution = 0
     
     circshift!(data_λ₁, data, .-λ₁)
     circshift!(data_λ₂, data, .-λ₂)
 
-    data_view = view_slice_last(data, t_start:t_end)
-    data_λ₁_view = view_slice_last(data_λ₁, t_start:t_end)
-    data_λ₂_view = view_slice_last(data_λ₂, t_start:t_end)
+    data_view = view_slice_last(data, (bd+1):(size(data)[end] - bd))
+    data_λ₁_view = view_slice_last(data_λ₁, ((bd+1):(size(data)[end] - bd) .+ t1))
+    data_λ₂_view = view_slice_last(data_λ₂, ((bd+1):(size(data)[end] - bd) .+ t2))
 
     @tturbo for p ∈ CartesianIndices(data_view)
         contribution += data_view[p] * data_λ₁_view[p] * data_λ₂_view[p]
@@ -178,9 +178,8 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
     extended_dim_lag_range = UnitRange(-floor(Int, lag_extents[end] / 2), ceil(Int, lag_extents[end] / 2))
     
     # validate that extension holds lags
-    @assert boundary.t_bounds[1] + minimum(extended_dim_lag_range) >= 1 "$(boundary.t_bounds); $(lag_extents); $(size(src))"
-    @assert boundary.t_bounds[2] + maximum(extended_dim_lag_range) <= size(src)[end][end] "$(boundary.t_bounds); $(lag_extents); $(size(src))"
-    @assert boundary.t_bounds[1] + minimum(extended_dim_lag_range) <= boundary.t_bounds[2] + maximum(extended_dim_lag_range) "$(boundary.t_bounds); $(lag_extents); $(size(src))"
+    @assert boundary.boundary + minimum(extended_dim_lag_range) >= 1 "$(boundary.boundary); $(lag_extents); $(size(src))"
+    @assert boundary.boundary <= maximum(extended_dim_lag_range) "$(boundary.boundary); $(lag_extents); $(size(src))"
 
     class_contribution .= 0
     for λ₁_periodic ∈ Iterators.product(periodic_lag_ranges...)

@@ -33,11 +33,11 @@ function bootstrap_sequence_classes!(inplace_src, boundary, lag_extents, n_boots
     return bootstrap_tricorr
 end
 function bootstrap_sequence_classes!(inplace_src, boundary::PeriodicExtended, lag_extents, n_bootstraps::Int)
-    t0, t1 = boundary.t_bounds
+    bd = boundary.boundary
     bootstrap_tricorr = mapreduce(+, 1:n_bootstraps) do _
-        shuffle!(@view inplace_src[:, 1:(t0-1)])
-        shuffle!(@view inplace_src[:, t0:t1])
-        shuffle!(@view inplace_src[:, (t1+1):end])
+        shuffle!(@view inplace_src[:, 1:bd])
+        shuffle!(@view inplace_src[:, (bd+1):(end-bd)])
+        shuffle!(@view inplace_src[:, (end-bd+1):end])
         sequence_class_tricorr(inplace_src, boundary, lag_extents)
     end
     bootstrap_tricorr ./= n_bootstraps
@@ -74,21 +74,21 @@ end
 
 @memoize function bootstrap_sequence_classes_nonzero(boundary::PeriodicExtended, n::Int, t::Int, count_ones::Int, lag_extents, n_bootstraps::Int, bootstraps_step::Int)
     max_bootstraps = n_bootstraps * 20
-    t0, t1 = boundary.t_bounds
+    bd = boundary.boundary
     inplace_arr = zeros(Bool, n, t)
     inplace_arr[1:count_ones] .= 1
-    shuffle!(@view inplace_arr[:, 1:(t0-1)])
-    shuffle!(@view inplace_arr[:, t0:t1])
-    shuffle!(@view inplace_arr[:, (t1+1):end])
+    shuffle!(@view inplace_src[:, 1:bd])
+    shuffle!(@view inplace_src[:, (bd+1):(end-bd)])
+    shuffle!(@view inplace_src[:, (end-bd+1):end])
     sequence_class_bootstrapped = bootstrap_sequence_classes!(inplace_arr, boundary, lag_extents, n_bootstraps) .* n_bootstraps
     while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
         @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents); count_ones = $count_ones]"
         n_bootstraps += bootstraps_step
         
         sequence_class_bootstrapped += mapreduce(+, 1:bootstraps_step) do _
-            shuffle!(@view inplace_arr[:, 1:(t0-1)])
-            shuffle!(@view inplace_arr[:, t0:t1])
-            shuffle!(@view inplace_arr[:, (t1+1):end])
+            shuffle!(@view inplace_src[:, 1:bd])
+            shuffle!(@view inplace_src[:, (bd+1):(end-bd)])
+            shuffle!(@view inplace_src[:, (end-bd+1):end])
             sequence_class_tricorr(inplace_arr, boundary, lag_extents)
         end
     end
@@ -103,18 +103,18 @@ end
 function bootstrap_sequence_classes_nonzero(arr::AbstractArray{<:AbstractFloat}, boundary::PeriodicExtended, lag_extents, n_bootstraps::Int, bootstraps_step::Int)
     inplace_arr = copy(arr)
     max_bootstraps = n_bootstraps * 20
-    t0, t1 = boundary.t_bounds
-    shuffle!(@view inplace_arr[:, 1:(t0-1)])
-    shuffle!(@view inplace_arr[:, t0:t1])
-    shuffle!(@view inplace_arr[:, (t1+1):end])
+    bd = boundary.boundary
+    shuffle!(@view inplace_arr[:, 1:(bd)])
+    shuffle!(@view inplace_arr[:, (bd+1):(end-bd)])
+    shuffle!(@view inplace_arr[:, (end-bd+1):end])
     sequence_class_bootstrapped = bootstrap_sequence_classes!(inplace_arr, boundary, lag_extents, n_bootstraps) .* n_bootstraps
     while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
         @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents)]"
         n_bootstraps += bootstraps_step
         sequence_class_bootstrapped += mapreduce(+, 1:bootstraps_step) do _
-            shuffle!(@view inplace_arr[:, 1:(t0-1)])
-            shuffle!(@view inplace_arr[:, t0:t1])
-            shuffle!(@view inplace_arr[:, (t1+1):end])
+            shuffle!(@view inplace_arr[:, 1:(bd)])
+            shuffle!(@view inplace_arr[:, (bd+1):(end-bd)])
+            shuffle!(@view inplace_arr[:, (end-bd+1):end])
             sequence_class_tricorr(inplace_arr, boundary, lag_extents)
         end
     end
