@@ -150,6 +150,7 @@ function sequence_class_tricorr(src, boundary::AbstractBoundaryCondition, lag_ex
     lags_classifier = lag_motif_sequence_class
 
     sequence_class_tricorr!(network_class_contributions, src, boundary, lag_extents, lags_classifier)
+    return network_class_contributions
 end
 
 function sequence_class_tricorr!(class_contribution::AbstractVector, src::AbstractArray{T}, boundary::AbstractBoundaryCondition, lag_extents, lags_classifier::Function) where T
