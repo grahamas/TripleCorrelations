@@ -77,9 +77,8 @@ function calculate_scaling_factor(arr, ::Periodic)
     prod(size(arr))
 end
 
-function calculate_scaling_factor(arr::AbstractMatrix, pe::PeriodicExtended)
-    return 1
-    scaling_factor = (pe.t_bounds[2] - pe.t_bounds[1]+1) * size(arr, 1)
+function calculate_scaling_factor(arr, pe::PeriodicExtended)
+    scaling_factor = (pe.t_bounds[2] - pe.t_bounds[1] + 1) * prod(size(arr)[1:end-1])
     return scaling_factor    
 end
 
