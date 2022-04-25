@@ -22,15 +22,15 @@ function lag_contribution_pre_shifted(data::D, boundary::Periodic, data_λ₁, d
     return contribution
 end
 
-function lag_contribution_pre_shifted(data::D, boundary::PeriodicExtended, data_λ₁, data_λ₂) where {N, T, D <: AbstractArray{T}}
+function lag_contribution_pre_shifted(data::D, t1, t2, boundary::PeriodicExtended, data_λ₁, data_λ₂) where {N, T, D <: AbstractArray{T}}
     # Periodic in n; extended in t
     # FIXME should validate extension holds lags
     t_start, t_end = boundary.t_bounds
     contribution = 0
 
     data_view = view_slice_last(data, t_start:t_end)
-    data_λ₁_view = view_slice_last(data_λ₁, t_start:t_end)
-    data_λ₂_view = view_slice_last(data_λ₂, t_start:t_end)
+    data_λ₁_view = view_slice_last(data_λ₁, (t_start:t_end) .+ t1)
+    data_λ₂_view = view_slice_last(data_λ₂, (t_start:t_end) .+ t2)
 
     @tturbo for p ∈ CartesianIndices(data_view)
         contribution += data_view[p] * data_λ₁_view[p] * data_λ₂_view[p]
@@ -117,33 +117,6 @@ function lag_sequence_class_contributions(tricorr::TripleCorrelation)
     return contributions
 end
 
-# # FIXME is this zeropadding?
-# function sequence_class_tricorr!(class_contribution::AbstractVector, src, boundary:: lag_extents, lags_classifier::Function)
-#     src = parent(src)
-
-#     space_lag_range = -(space_max_lag):(space_max_lag)        
-#     time_lag_range = -(time_max_lag):(time_max_lag)
-
-#     (N_n, N_t) = size(src)
-
-#     class_contribution .= 0
-#     for n1 ∈ space_lag_range, n2 ∈ space_lag_range, 
-#         t1 ∈ time_lag_range, t2 ∈ time_lag_range
-#         class = lags_classifier(n1, n2, t1, t2)
-#         n_start = max(1 - min(n1, n2), 1); t_start = max(1 - min(t1, t2), 1)
-#         n_end = min(N_n - max(n1,n2), N_n)
-#         t_end = min(N_t - max(t1,t2), N_t)
-        
-#         contribution = 0
-#         # tturbo missing
-#         for n ∈ n_start:n_end, t ∈ t_start:t_end
-#             contribution += src[n, t] * src[n+n1,t+t1] * src[n+n2,t+t2]
-#         end
-#         class_contribution[class] += contribution
-#     end
-#     class_contribution ./= calculate_scaling_factor_zeropad(src)
-# end
-
 function sequence_class_tricorr(src, boundary::AbstractBoundaryCondition, lag_extents)
     N_network_classifications = 14
     network_class_contributions = Array{Float64}(undef, N_network_classifications)
@@ -153,7 +126,7 @@ function sequence_class_tricorr(src, boundary::AbstractBoundaryCondition, lag_ex
     return network_class_contributions
 end
 
-function sequence_class_tricorr!(class_contribution::AbstractVector, src::AbstractArray{T}, boundary::AbstractBoundaryCondition, lag_extents, lags_classifier::Function) where T
+function sequence_class_tricorr!(class_contribution::AbstractVector, src::AbstractArray{T}, boundary::ZeroPadded, lag_extents, lags_classifier::Function) where T
     src = parent(src)
 
     lag_ranges = map(((start,stop),) -> UnitRange(start,stop), zip(.-floor.(Int, lag_extents ./ 2), ceil.(Int, lag_extents ./ 2)))
@@ -194,6 +167,7 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
 end
 
 function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, boundary::PeriodicExtended, lag_extents, lags_classifier::Function) where {T, SRC<:AbstractArray{T}}
+
     src = parent(src)
     lag1_cache = typeof(src)(undef, size(src))
     lag2_cache = typeof(src)(undef, size(src))
@@ -202,6 +176,11 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
     periodic_lag_ranges = map(((start,stop),) -> UnitRange(start,stop), zip(.-floor.(Int, lag_extents ./ 2), ceil.(Int, periodic_lag_extents ./ 2)))
 
     extended_dim_lag_range = UnitRange(-floor(Int, lag_extents[end] / 2), ceil(Int, lag_extents[end] / 2))
+    
+    # validate that extension holds lags
+    @assert boundary.t_bounds[1] + minimum(extended_dim_lag_range) >= 1 "$(boundary.t_bounds); $(lag_extents); $(size(src))"
+    @assert boundary.t_bounds[2] + maximum(extended_dim_lag_range) <= size(src)[end][end] "$(boundary.t_bounds); $(lag_extents); $(size(src))"
+    @assert boundary.t_bounds[1] + minimum(extended_dim_lag_range) <= boundary.t_bounds[2] + maximum(extended_dim_lag_range) "$(boundary.t_bounds); $(lag_extents); $(size(src))"
 
     class_contribution .= 0
     for λ₁_periodic ∈ Iterators.product(periodic_lag_ranges...)
@@ -212,7 +191,7 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
                 λ₁ = (λ₁_periodic..., t₁)
                 λ₂ = (λ₂_periodic..., t₂)
                 class = lags_classifier(λ₁, λ₂)
-                contribution = lag_contribution_pre_shifted(src, boundary, lag1_cache, lag2_cache)
+                contribution = lag_contribution_pre_shifted(src, t₁, t₂, boundary, lag1_cache, lag2_cache)
                 class_contribution[class] += contribution
             end
         end
