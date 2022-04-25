@@ -77,18 +77,18 @@ end
     bd = boundary.boundary
     inplace_arr = zeros(Bool, n, t)
     inplace_arr[1:count_ones] .= 1
-    shuffle!(@view inplace_src[:, 1:bd])
-    shuffle!(@view inplace_src[:, (bd+1):(end-bd)])
-    shuffle!(@view inplace_src[:, (end-bd+1):end])
+    shuffle!(@view inplace_arr[:, 1:bd])
+    shuffle!(@view inplace_arr[:, (bd+1):(end-bd)])
+    shuffle!(@view inplace_arr[:, (end-bd+1):end])
     sequence_class_bootstrapped = bootstrap_sequence_classes!(inplace_arr, boundary, lag_extents, n_bootstraps) .* n_bootstraps
     while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
         @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents); count_ones = $count_ones]"
         n_bootstraps += bootstraps_step
         
         sequence_class_bootstrapped += mapreduce(+, 1:bootstraps_step) do _
-            shuffle!(@view inplace_src[:, 1:bd])
-            shuffle!(@view inplace_src[:, (bd+1):(end-bd)])
-            shuffle!(@view inplace_src[:, (end-bd+1):end])
+            shuffle!(@view inplace_arr[:, 1:bd])
+            shuffle!(@view inplace_arr[:, (bd+1):(end-bd)])
+            shuffle!(@view inplace_arr[:, (end-bd+1):end])
             sequence_class_tricorr(inplace_arr, boundary, lag_extents)
         end
     end
