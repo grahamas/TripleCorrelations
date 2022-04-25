@@ -1,6 +1,6 @@
 # Truncating calculation
 
-function lag_contribution(data::D, boundary::Periodic, p1::NTuple{N,Int}, p2::NTuple{N,Int}, data_λ₁=D(undef, size(data)), data_λ₂=D(undef, size(data))) where {N, T, D <: AbstractArray{T}}
+function lag_contribution(data::D, boundary::Periodic, p1::NTuple{N,Int}, p2::NTuple{N,Int}, data_λ₁=D(undef, size(data)), data_λ₂=D(undef, size(data))) where {N, T, D <: AbstractArray{T,N}}
     # Assume ns, ts < size(data)
     contribution = 0
     circshift!(data_λ₁, data, .-p1)
@@ -12,6 +12,40 @@ function lag_contribution(data::D, boundary::Periodic, p1::NTuple{N,Int}, p2::NT
     return contribution
 end
 
+function lag_contribution_pre_shifted(data::D, boundary::Periodic, data_λ₁, data_λ₂) where {N, T, D <: AbstractArray{T,N}}
+    # Assume ns, ts < size(data)
+    contribution = 0
+
+    @tturbo for p0 ∈ CartesianIndices(data)
+        contribution += data[p0] * data_λ₁[p0] * data_λ₂[p0]
+    end
+    return contribution
+end
+
+function lag_contribution_pre_shifted(data::D, boundary::PeriodicExtended, data_λ₁, data_λ₂) where {N, T, D <: AbstractArray{T}}
+    # Periodic in n; extended in t
+    # FIXME should validate extension holds lags
+    t_start, t_end = boundary.t_bounds
+    contribution = 0
+
+    data_view = view_slice_last(data, t_start:t_end)
+    data_λ₁_view = view_slice_last(data_λ₁, t_start:t_end)
+    data_λ₂_view = view_slice_last(data_λ₂, t_start:t_end)
+
+    @tturbo for p ∈ CartesianIndices(data_view)
+        contribution += data_view[p] * data_λ₁_view[p] * data_λ₂_view[p]
+    end
+    return contribution
+end
+
+# if n > 0: n; else 0
+function if_positive(n)
+    if n > 0
+        n
+    else
+        0
+    end
+end
 
 function lag_contribution(data::D, boundary::ZeroPadded, λ₁::NTuple{N}, λ₂::NTuple{N}) where {T,N, D <: AbstractArray{T,N}}
     λ_starts = map(λ₁, λ₂) do p1, p2
@@ -84,7 +118,7 @@ function lag_sequence_class_contributions(tricorr::TripleCorrelation)
 end
 
 # # FIXME is this zeropadding?
-# function sequence_class_tricorr!(class_contribution::AbstractVector, src, boundary:: max_lags, lags_classifier::Function)
+# function sequence_class_tricorr!(class_contribution::AbstractVector, src, boundary:: lag_extents, lags_classifier::Function)
 #     src = parent(src)
 
 #     space_lag_range = -(space_max_lag):(space_max_lag)        
@@ -110,18 +144,18 @@ end
 #     class_contribution ./= calculate_scaling_factor_zeropad(src)
 # end
 
-function sequence_class_tricorr(src, boundary::AbstractBoundaryCondition, max_lags)
+function sequence_class_tricorr(src, boundary::AbstractBoundaryCondition, lag_extents)
     N_network_classifications = 14
     network_class_contributions = Array{Float64}(undef, N_network_classifications)
     lags_classifier = lag_motif_sequence_class
 
-    sequence_class_tricorr!(network_class_contributions, src, boundary, max_lags, lags_classifier)
+    sequence_class_tricorr!(network_class_contributions, src, boundary, lag_extents, lags_classifier)
 end
 
-function sequence_class_tricorr!(class_contribution::AbstractVector, src::AbstractArray{T}, boundary::AbstractBoundaryCondition, max_lags, lags_classifier::Function) where T
+function sequence_class_tricorr!(class_contribution::AbstractVector, src::AbstractArray{T}, boundary::AbstractBoundaryCondition, lag_extents, lags_classifier::Function) where T
     src = parent(src)
 
-    lag_ranges = map(((start,stop),) -> UnitRange(start,stop), zip(.-max_lags, max_lags))
+    lag_ranges = map(((start,stop),) -> UnitRange(start,stop), zip(.-floor.(Int, lag_extents ./ 2), ceil.(Int, lag_extents ./ 2)))
 
     class_contribution .= 0
     for λ₁ ∈ Iterators.product(lag_ranges...), λ₂ ∈ Iterators.product(lag_ranges...)
@@ -138,33 +172,84 @@ end
 
 # Periodic calculation
 
-function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, boundary::Union{Periodic,PeriodicExtended}, max_lags, lags_classifier::Function) where {T, SRC<:AbstractArray{T}}
+function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, boundary::Periodic, lag_extents, lags_classifier::Function) where {T, SRC<:AbstractArray{T}}
     src = parent(src)
     lag1_cache = typeof(src)(undef, size(src))
     lag2_cache = typeof(src)(undef, size(src))
 
-    lag_ranges = map(((start,stop),) -> UnitRange(start,stop), zip(.-max_lags, max_lags))
+    lag_ranges = map(((start,stop),) -> UnitRange(start,stop), zip(.-floor.(Int, lag_extents ./ 2), ceil.(Int, lag_extents ./ 2)))
 
     class_contribution .= 0
-    for λ₁ ∈ Iterators.product(lag_ranges...), λ₂ ∈ Iterators.product(lag_ranges...)
-        class = lags_classifier(λ₁, λ₂)
-        contribution = lag_contribution(src, boundary, λ₁, λ₂, lag1_cache, lag2_cache)
-        class_contribution[class] += contribution
+    for λ₁ ∈ Iterators.product(lag_ranges...)
+        circshift!(lag1_cache, src, .-λ₁)
+        for λ₂ ∈ Iterators.product(lag_ranges...)
+            circshift!(lag2_cache, src, .-λ₂)
+            class = lags_classifier(λ₁, λ₂)
+            contribution = lag_contribution_pre_shifted(src, boundary, lag1_cache, lag2_cache)
+            class_contribution[class] += contribution
+        end
+    end
+    class_contribution ./= calculate_scaling_factor(src, boundary)
+end
+
+function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, boundary::PeriodicExtended, lag_extents, lags_classifier::Function) where {T, SRC<:AbstractArray{T}}
+    src = parent(src)
+    lag1_cache = typeof(src)(undef, size(src))
+    lag2_cache = typeof(src)(undef, size(src))
+
+    periodic_lag_extents = lag_extents[1:end-1]
+    periodic_lag_ranges = map(((start,stop),) -> UnitRange(start,stop), zip(.-floor.(Int, lag_extents ./ 2), ceil.(Int, periodic_lag_extents ./ 2)))
+
+    extended_dim_lag_range = UnitRange(-floor(Int, lag_extents[end] / 2), ceil(Int, lag_extents[end] / 2))
+
+    class_contribution .= 0
+    for λ₁_periodic ∈ Iterators.product(periodic_lag_ranges...)
+        circshift!(lag1_cache, src, (.-λ₁_periodic..., 0))
+        for λ₂_periodic ∈ Iterators.product(periodic_lag_ranges...)
+            circshift!(lag2_cache, src, (.-λ₂_periodic..., 0))
+            for t₁ ∈ extended_dim_lag_range, t₂ ∈ extended_dim_lag_range
+                λ₁ = (λ₁_periodic..., t₁)
+                λ₂ = (λ₂_periodic..., t₂)
+                class = lags_classifier(λ₁, λ₂)
+                contribution = lag_contribution_pre_shifted(src, boundary, lag1_cache, lag2_cache)
+                class_contribution[class] += contribution
+            end
+        end
     end
     class_contribution ./= calculate_scaling_factor(src, boundary)
 end
 
 
+allzeros(t) = mapreduce(iszero, &, t)
+neuron_lags(t::NTuple{N}) where N = ntuple(i -> t[i], N-1)
+time_lag(t::Tuple) = t[end]
 
-
-function count_distinct(args...)
-    return length(unique(args))
+function count_distinct_neurons(λ₁, λ₂)
+    if allzeros(neuron_lags(λ₁)) && allzeros(neuron_lags(λ₂))
+        return 1
+    elseif allzeros(neuron_lags(λ₁)) || allzeros(neuron_lags(λ₂)) || neuron_lags(λ₁) == neuron_lags(λ₂)
+        return 2
+    else
+        return 3
+    end
 end
 
-function _1_channel_seq_class(n1, n2, t1, t2)
+function count_distinct_times(t1, t2)
+    if t1 == t2 == 0
+        return 1
+    elseif t1 == 0 || t2 == 0 || t1 == t2
+        return 2
+    else
+        @assert t1 != t2 != 0
+        return 3
+    end
+end
+
+function _1_channel_seq_class(λ₁, λ₂)
     # All neurons are the same
     # Assume t1 <= t2
-    n_distinct_times = count_distinct(0, t1, t2)
+    t1 = time_lag(λ₁); t2 = time_lag(λ₂)
+    n_distinct_times = count_distinct_times(t1, t2)
 
     if n_distinct_times == 1
         # All neurons and times are the same
@@ -180,16 +265,18 @@ function _1_channel_seq_class(n1, n2, t1, t2)
     end
 end
 
-function _2_channel_seq_class(n1, n2, t1, t2)
+function _2_channel_seq_class(λ₁, λ₂)
     # Two neurons are the same (two distinct neurons involved)
     # Assume t1 <= t2
-    n_distinct_times = count_distinct(0, t1, t2)
+    t1 = time_lag(λ₁); t2 = time_lag(λ₂)
+    n_distinct_times = count_distinct_times(t1, t2)
+    n1 = neuron_lags(λ₁); n2 = neuron_lags(λ₂) 
 
     if n_distinct_times == 1
         # Two neurons are the same, all times are the same
         return 4
     elseif n_distinct_times == 2
-        if (0 == t1 && all(iszero.(n1))) || (t1 == t2 && n1 == n2) || (0 == t2 && all(iszero.(n2)))
+        if (0 == t1 && allzeros(n1)) || (t1 == t2 && n1 == n2) || (0 == t2 && allzeros(n2))
             # Base and first nodes are same; or first and second
             return 6
         elseif (t1 == 0) || (t2 < 0)
@@ -202,7 +289,7 @@ function _2_channel_seq_class(n1, n2, t1, t2)
             error("Shouldn't be here")
         end
     elseif n_distinct_times == 3
-        if all(iszero.(n1))
+        if allzeros(n1)
             if (0 < t1)
                 return 11
             elseif (t1 < 0)
@@ -216,7 +303,7 @@ function _2_channel_seq_class(n1, n2, t1, t2)
             else
                 error("Shouldn't be here")
             end
-        elseif all(iszero.(n2))
+        elseif allzeros(n2)
             if (t2 < 0)
                 return 9
             elseif (t2 > 0)
@@ -248,10 +335,11 @@ function _2_channel_seq_class(n1, n2, t1, t2)
     end
 end
 
-function _3_channel_seq_class(n1, n2, t1, t2)
+function _3_channel_seq_class(λ₁, λ₂)
     # All neurons are distinct
     # Assume t1 <= t2
-    n_distinct_times = count_distinct(0, t1, t2)
+    t1 = time_lag(λ₁); t2 = time_lag(λ₂)
+    n_distinct_times = count_distinct_times(t1, t2)
 
     if n_distinct_times == 1
         # All neurons are distinct, times are the same
@@ -283,25 +371,31 @@ end
 #     lag_motif_sequence_class(λ₁, λ₂)
 # end
 
-function lag_motif_sequence_class(λ₁::NT, λ₂::NT) where {N, T, NT <: NTuple{N,T}}
-    n1 = λ₁[1:end-1]; t1 = λ₁[end]
-    n2 = λ₂[1:end-1]; t2 = λ₂[end]
-    n_distinct_neurons = count_distinct(zero.(n1), n1, n2)
-
-    n1, n2, t1, t2 = if t1 < t2
-        (n1, n2, t1, t2)
+function (n1, t1, n2, t2)
+    n1, t1, n2, t2 = if t1 <= t2
+        n1, t1, n2, t2
     else
-        (n2, n1, t2, t1)
+        n2, t2, n1, t2
     end
-    # Assume below that t1 <= t2
+end
+
+function lag_motif_sequence_class(λ₁, λ₂) where {N, T, NT <: NTuple{N,T}}
+
+    # order in time
+    λ₁, λ₂ = if time_lag(λ₁) <= time_lag(λ₂)
+        λ₁, λ₂
+    else
+        λ₂, λ₁
+    end
+    n_distinct_neurons = count_distinct_neurons(λ₁, λ₂)
 
     if n_distinct_neurons == 1
         # All neurons are the same
-        return _1_channel_seq_class(n1, n2, t1, t2)
+        return _1_channel_seq_class(λ₁, λ₂)
     elseif n_distinct_neurons == 2
-        return _2_channel_seq_class(n1, n2, t1, t2)
+        return _2_channel_seq_class(λ₁, λ₂)
     elseif n_distinct_neurons == 3
-        return _3_channel_seq_class(n1, n2, t1, t2)
+        return _3_channel_seq_class(λ₁, λ₂)
     else
         error("Invalid number of same neurons: $n_distinct_neurons")
     end
