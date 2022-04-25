@@ -179,7 +179,7 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
     
     # validate that extension holds lags
     @assert boundary.boundary + minimum(extended_dim_lag_range) >= 0 "$(boundary.boundary); $(lag_extents); $(size(src))"
-    @assert boundary.boundary <= maximum(extended_dim_lag_range) "$(boundary.boundary); $(extended_dim_lag_range); $(lag_extents); $(size(src))"
+    @assert maximum(extended_dim_lag_range) <= boundary.boundary "$(boundary.boundary); $(extended_dim_lag_range); $(lag_extents); $(size(src))"
 
     class_contribution .= 0
     for λ₁_periodic ∈ Iterators.product(periodic_lag_ranges...)
