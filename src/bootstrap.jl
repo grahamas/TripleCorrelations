@@ -57,7 +57,7 @@ end
     unshuffled_raster[1:count_ones] .= 1
     sequence_class_bootstrapped = bootstrap_sequence_classes!(unshuffled_raster, boundary, lag_extents, n_bootstraps) .* n_bootstraps
     while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
-        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $((n_lag,t_lag))]"
+        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents)]"
         n_bootstraps += bootstraps_step
         sequence_class_bootstrapped += sum(
             sequence_class_tricorr(shuffle!(unshuffled_raster), boundary, lag_extents) 
@@ -66,7 +66,7 @@ end
     end
     if n_bootstraps >= max_bootstraps
         @warn "BAD"
-        @show boundary n t count_ones n_lag t_lag
+        @show boundary n t count_ones lag_extents
     end
     sequence_class_bootstrapped ./= n_bootstraps
     return sequence_class_bootstrapped
@@ -79,7 +79,7 @@ end
     sequence_class_bootstrapped = bootstrap_sequence_classes!(inplace_arr, boundary, lag_extents, n_bootstraps) .* n_bootstraps
     t0, t1 = boundary.t_bounds
     while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
-        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $((n_lag,t_lag))]"
+        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents)]"
         n_bootstraps += bootstraps_step
         
         sequence_class_bootstrapped += mapreduce(+, 1:bootstraps_step) do _
@@ -91,7 +91,7 @@ end
     end
     if n_bootstraps >= max_bootstraps
         @warn "BAD"
-        @show boundary n t count_ones n_lag t_lag
+        @show boundary n t count_ones lag_extents
     end
     sequence_class_bootstrapped ./= n_bootstraps
     return sequence_class_bootstrapped
@@ -103,7 +103,7 @@ function bootstrap_sequence_classes_nonzero(arr::AbstractArray{<:AbstractFloat},
     sequence_class_bootstrapped = bootstrap_sequence_classes!(inplace_arr, boundary, lag_extents, n_bootstraps) .* n_bootstraps
     t0, t1 = boundary.t_bounds
     while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
-        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $((n_lag,t_lag))]"
+        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents)]"
         n_bootstraps += bootstraps_step
         sequence_class_bootstrapped += mapreduce(+, 1:bootstraps_step) do _
             shuffle!(@view inplace_arr[:, 1:(t0-1)])
@@ -124,7 +124,7 @@ function bootstrap_sequence_classes_nonzero(arr::AbstractArray{<:AbstractFloat},
     max_bootstraps = n_bootstraps * 20
     sequence_class_bootstrapped = bootstrap_sequence_classes!(inplace_arr, boundary, lag_extents, n_bootstraps) .* n_bootstraps
     while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
-        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $((n_lag,t_lag))]"
+        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents)]"
         n_bootstraps += bootstraps_step
         sequence_class_bootstrapped += sum(
             sequence_class_tricorr(shuffle!(inplace_arr), boundary, lag_extents) 
