@@ -365,11 +365,11 @@ function _3_channel_seq_class(λ₁, λ₂)
     end
 end
 
-# function lag_motif_sequence_class(p0::T, p1::T, p2::T) where {T <: NTuple{2}}
-#     λ₁ = p1 .- p0
-#     λ₂ = p2 .- p0
-#     lag_motif_sequence_class(λ₁, λ₂)
-# end
+function lag_motif_sequence_class(p0::T, p1::T, p2::T) where {T <: NTuple{2}}
+    λ₁ = p1 .- p0
+    λ₂ = p2 .- p0
+    lag_motif_sequence_class(λ₁, λ₂)
+end
 
 function (n1, t1, n2, t2)
     n1, t1, n2, t2 = if t1 <= t2
