@@ -57,7 +57,7 @@ end
     unshuffled_raster[1:count_ones] .= 1
     sequence_class_bootstrapped = bootstrap_sequence_classes!(unshuffled_raster, boundary, lag_extents, n_bootstraps) .* n_bootstraps
     while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
-        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents)]"
+        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents); count_ones = $count_ones]"
         n_bootstraps += bootstraps_step
         sequence_class_bootstrapped += sum(
             sequence_class_tricorr(shuffle!(unshuffled_raster), boundary, lag_extents) 
@@ -79,7 +79,7 @@ end
     sequence_class_bootstrapped = bootstrap_sequence_classes!(inplace_arr, boundary, lag_extents, n_bootstraps) .* n_bootstraps
     t0, t1 = boundary.t_bounds
     while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
-        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents)]"
+        @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents); count_ones = $count_ones]"
         n_bootstraps += bootstraps_step
         
         sequence_class_bootstrapped += mapreduce(+, 1:bootstraps_step) do _
