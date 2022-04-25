@@ -74,10 +74,13 @@ end
 
 @memoize function bootstrap_sequence_classes_nonzero(boundary::PeriodicExtended, n::Int, t::Int, count_ones::Int, lag_extents, n_bootstraps::Int, bootstraps_step::Int)
     max_bootstraps = n_bootstraps * 20
+    t0, t1 = boundary.t_bounds
     inplace_arr = zeros(Bool, n, t)
     inplace_arr[1:count_ones] .= 1
+    shuffle!(@view inplace_arr[:, 1:(t0-1)])
+    shuffle!(@view inplace_arr[:, t0:t1])
+    shuffle!(@view inplace_arr[:, (t1+1):end])
     sequence_class_bootstrapped = bootstrap_sequence_classes!(inplace_arr, boundary, lag_extents, n_bootstraps) .* n_bootstraps
-    t0, t1 = boundary.t_bounds
     while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
         @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents); count_ones = $count_ones]"
         n_bootstraps += bootstraps_step
@@ -100,8 +103,11 @@ end
 function bootstrap_sequence_classes_nonzero(arr::AbstractArray{<:AbstractFloat}, boundary::PeriodicExtended, lag_extents, n_bootstraps::Int, bootstraps_step::Int)
     inplace_arr = copy(arr)
     max_bootstraps = n_bootstraps * 20
-    sequence_class_bootstrapped = bootstrap_sequence_classes!(inplace_arr, boundary, lag_extents, n_bootstraps) .* n_bootstraps
     t0, t1 = boundary.t_bounds
+    shuffle!(@view inplace_arr[:, 1:(t0-1)])
+    shuffle!(@view inplace_arr[:, t0:t1])
+    shuffle!(@view inplace_arr[:, (t1+1):end])
+    sequence_class_bootstrapped = bootstrap_sequence_classes!(inplace_arr, boundary, lag_extents, n_bootstraps) .* n_bootstraps
     while any(sequence_class_bootstrapped .== 0) && (n_bootstraps < max_bootstraps)
         @warn "insufficient n_bootstraps = $n_bootstraps [(n,t) = $((n,t)); lag = $(lag_extents)]"
         n_bootstraps += bootstraps_step
