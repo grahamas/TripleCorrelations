@@ -29,8 +29,8 @@ function lag_contribution_pre_shifted(data::D, t1, t2, boundary::PeriodicExtende
     contribution = 0
 
     data_view = view_slice_last(data, (bd+1):(size(data)[end] - bd))
-    data_λ₁_view = view_slice_last(data_λ₁, ((bd+1):(size(data)[end] - bd) .+ t1))
-    data_λ₂_view = view_slice_last(data_λ₂, ((bd+1):(size(data)[end] - bd) .+ t2))
+    data_λ₁_view = view_slice_last(data_λ₁, ((bd+1):(size(data)[end] - bd)) .+ t1)
+    data_λ₂_view = view_slice_last(data_λ₂, ((bd+1):(size(data)[end] - bd)) .+ t2)
 
     @tturbo for p ∈ CartesianIndices(data_view)
         contribution += data_view[p] * data_λ₁_view[p] * data_λ₂_view[p]
@@ -178,8 +178,8 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
     extended_dim_lag_range = UnitRange(-floor(Int, lag_extents[end] / 2), ceil(Int, lag_extents[end] / 2))
     
     # validate that extension holds lags
-    @assert boundary.boundary + minimum(extended_dim_lag_range) >= 1 "$(boundary.boundary); $(lag_extents); $(size(src))"
-    @assert boundary.boundary <= maximum(extended_dim_lag_range) "$(boundary.boundary); $(lag_extents); $(size(src))"
+    @assert boundary.boundary + minimum(extended_dim_lag_range) >= 0 "$(boundary.boundary); $(lag_extents); $(size(src))"
+    @assert boundary.boundary <= maximum(extended_dim_lag_range) "$(boundary.boundary); $(extended_dim_lag_range); $(lag_extents); $(size(src))"
 
     class_contribution .= 0
     for λ₁_periodic ∈ Iterators.product(periodic_lag_ranges...)
