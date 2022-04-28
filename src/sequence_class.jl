@@ -24,7 +24,6 @@ end
 
 function lag_contribution_pre_shifted(data::D, t1, t2, boundary::PeriodicExtended, data_λ₁, data_λ₂) where {N, T, D <: AbstractArray{T}}
     # Periodic in n; extended in t
-    # FIXME should validate extension holds lags
     bd = boundary.boundary
     contribution = 0
 
@@ -167,7 +166,6 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
 end
 
 function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, boundary::PeriodicExtended, lag_extents, lags_classifier::Function) where {T, SRC<:AbstractArray{T}}
-
     src = parent(src)
     lag1_cache = typeof(src)(undef, size(src))
     lag2_cache = typeof(src)(undef, size(src))

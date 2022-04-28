@@ -1,4 +1,3 @@
-# FIXME revert to _unrolled
 function bootstrap_normed_sequence_classes(raster, boundary, lag_extents; n_bootstraps, bootstraps_step=max(n_bootstraps÷5,1))
     raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
     if n_bootstraps > 0
