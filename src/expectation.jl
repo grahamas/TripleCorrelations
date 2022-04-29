@@ -8,6 +8,8 @@ function expectation_conditioned_on_spike_count(count, raster_size, lag_extents:
     DT2 = (t_lag_extent - 1)  # within t distance with 2 spikes
     DN1 = (n_lag_extent)
     DN2 = (n_lag_extent - 1)
+    DOWN_T = floor(Int, t_lag_extent / 2)
+    UP_T = ceil(Int, t_lag_extent / 2)
     PS1 = ((R - 1) / (NT - 1))  # probability of spike given prior spike
     PS2 = ((R - 2) / (NT - 2))  # probability of spike given two prior spikes
     C = 3
@@ -20,18 +22,37 @@ function expectation_conditioned_on_spike_count(count, raster_size, lag_extents:
         C * R * DT1 * DN1 * PS1,  # V
         C * R * DN1 * PS1 * DT1 * PS2,  # VI
         C * R * DN1 * PS1 * DT1 * PS2,  # VII
-        C^2 / 2 * R * DN1 * ceil(Int, t_lag_extent / 2) * (ceil(Int, t_lag_extent / 2) - 1) * PS1 * PS2, # VIII
-        3.6 * R * DN1 * ceil(Int, t_lag_extent / 2) * floor(Int, t_lag_extent / 2) * PS1 * PS2,  # IX; FIXME what
-        C^2 / 2 * R * DN1 * floor(Int, t_lag_extent / 2) * (floor(Int, t_lag_extent / 2) - 1) * PS1 * PS2, # X; local dynamics precede
-        C * R * ceil(Int, t_lag_extent / 2) * DN1 * PS1 * DN2 * PS2,  # XI
-        C * R * floor(Int, t_lag_extent / 2) * DN1 * PS1 * DN2 * PS2,  # XII
+        C^2 / 2 * R * DN1 * UP_T * (UP_T - 1) * PS1 * PS2, # VIII
+        3.6 * R * DN1 * UP_T * DOWN_T * PS1 * PS2,  # IX; FIXME what
+        C^2 / 2 * R * DN1 * DOWN_T * (DOWN_T - 1) * PS1 * PS2, # X; local dynamics precede
+        C * R * UP_T * DN1 * PS1 * DN2 * PS2,  # XI
+        C * R * DOWN_T * DN1 * PS1 * DN2 * PS2,  # XII
         R * DT1 * DN1 * PS1 * DT2 * DN2 * PS2  # XIII
     ]
 end
 
+function expectation_conditioned_on_lower_orders(actual, count, raster_size, lag_extents::NTuple{2})
+    expected = expectation_conditioned_on_spike_count(count, raster_size, lag_extents)
+    [
+        expected[1],
+        expected[2],  # I
+        (expected[3] / expected[2]) * actual[2],   # II
+        expected[4],  # III
+        (expected[5] / expected[4]) * actual[4],  # IV
+        expected[6],  # V
+        (expected[7] / (expected[2] * expected[4] * expected[6])) * (actual[2] * actual[4] * actual[6]) ,  # VI
+        (expected[8] / (expected[2] * expected[4] * expected[6])) * (actual[2] * actual[4] * actual[6]),  # VII
+        (expected[9] / (expected[2] * expected[6]^2)) * (actual[2] * actual[6]^2), # VIII
+        (expected[10] / (expected[2] * expected[6]^2)) * (actual[2] * actual[6]^2),  # IX; FIXME what
+        (expected[11] / (expected[2] * expected[6]^2)) * (actual[2] * actual[6]^2), # X; local dynamics precede
+        (expected[12] / (expected[4] * expected[6])) * (actual[4] * actual[6]),  # XI
+        (expected[13] / (expected[4] * expected[6])) * (actual[4] * actual[6]),  # XII
+        (expected[14] / (expected[6]^3)) * (actual[6]^3)  # XIII
+    ]
+end
 function rate_normed_sequence_classes(raster, boundary, lag_extents)
     # 0 means same as noise
     raster_size = get_raster_size(raster, boundary)
     raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
-    (raw_sequence_classes ./ expectation_conditioned_on_spike_count(count(raster), raster_size, lag_extents) ./ calculate_scaling_factor(raster, boundary)) .- 1
+    raw_sequence_classes ./ (expectation_conditioned_on_spike_count(count(raster), raster_size, lag_extents) ./ calculate_scaling_factor(raster, boundary)) .- 1
 end
