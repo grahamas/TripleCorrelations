@@ -30,6 +30,6 @@ export time_tricorr_zeropad, space_tricorr_zeropad, space_time_tricorr_zeropad,
     marginal_tricorr_zeropad!
 
 include("expectation.jl")
-export rate_normed_sequence_classes, expectation_conditioned_on_spike_count, expectation_conditioned_on_lower_orders
+export rate_normed_sequence_classes, expectation_conditioned_on_spike_count, expectation_conditioned_on_constituent_parts, constituent_normed_sequence_classes
 
 end # module

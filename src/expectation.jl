@@ -31,7 +31,7 @@ function expectation_conditioned_on_spike_count(count, raster_size, lag_extents:
     ]
 end
 
-function expectation_conditioned_on_lower_orders(actual, count, raster_size, lag_extents::NTuple{2})
+function expectation_conditioned_on_constituent_parts(actual, count, raster_size, lag_extents::NTuple{2})
     expected = expectation_conditioned_on_spike_count(count, raster_size, lag_extents)
     [
         expected[1],
@@ -55,4 +55,10 @@ function rate_normed_sequence_classes(raster, boundary, lag_extents)
     raster_size = get_raster_size(raster, boundary)
     raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
     raw_sequence_classes ./ (expectation_conditioned_on_spike_count(count(raster), raster_size, lag_extents) ./ calculate_scaling_factor(raster, boundary)) .- 1
+end
+function constituent_normed_sequence_classes(raster, boundary, lag_extents)
+    # 0 means same as noise
+    raster_size = get_raster_size(raster, boundary)
+    raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
+    raw_sequence_classes ./ (expectation_conditioned_on_constituent_parts(raw_sequence_classes, count(raster), raster_size, lag_extents) ./ calculate_scaling_factor(raster, boundary)) .- 1
 end
