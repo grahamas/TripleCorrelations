@@ -1,12 +1,12 @@
-function expectation_conditioned_on_spike_count(raster, boundary::Periodic, lag_extents::NTuple{2})
+function expectation_conditioned_on_spike_count(raster::AbstractArray, boundary::Periodic, lag_extents::NTuple{2})
     expectation_conditioned_on_spike_count(count(raster), size(raster), lag_extents)
 end
 
-function expectation_conditioned_on_spike_count(raster, boundary::PeriodicExtended, lag_extents)
+function expectation_conditioned_on_spike_count(raster::AbstractArray, boundary::PeriodicExtended, lag_extents)
     expectation_conditioned_on_spike_count(count_raster, (size(raster[1:end-1])..., raster[end]-2 * boundary.boundary), lag_extents)
 end
 
-function expectation_conditioned_on_spike_count(count, raster_size, lag_extents::NTuple{2})
+function expectation_conditioned_on_spike_count(count::Number, raster_size, lag_extents::NTuple{2})
     n_lag_extent = lag_extents[1]
     t_lag_extent = lag_extents[end]
     NT = prod(raster_size)
@@ -38,7 +38,7 @@ function expectation_conditioned_on_spike_count(count, raster_size, lag_extents:
     ]
 end
 
-function expectation_conditioned_on_constituent_parts(actual, count, raster_size, lag_extents::NTuple{2})
+function expectation_conditioned_on_constituent_parts(actual, count::Number, raster_size, lag_extents::NTuple{2})
     expected = expectation_conditioned_on_spike_count(count, raster_size, lag_extents)
     [
         expected[1],
