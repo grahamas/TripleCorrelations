@@ -3,7 +3,7 @@ function expectation_conditioned_on_spike_count(raster::AbstractArray, boundary:
 end
 
 function expectation_conditioned_on_spike_count(raster::AbstractArray, boundary::PeriodicExtended, lag_extents)
-    expectation_conditioned_on_spike_count(count_raster, (size(raster[1:end-1])..., raster[end]-2 * boundary.boundary), lag_extents)
+    expectation_conditioned_on_spike_count(count(raster), (size(raster[1:end-1])..., raster[end]-2 * boundary.boundary), lag_extents)
 end
 
 function expectation_conditioned_on_spike_count(count::Number, raster_size, lag_extents::NTuple{2})
