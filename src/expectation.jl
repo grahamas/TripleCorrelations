@@ -1,3 +1,10 @@
+function expectation_conditioned_on_spike_count(raster, boundary::Periodic, lag_extents::NTuple{2})
+    expectation_conditioned_on_spike_count(count(raster), size(raster), lag_extents)
+end
+
+function expectation_conditioned_on_spike_count(raster, boundary::PeriodicExtended, lag_extents)
+    expectation_conditioned_on_spike_count(count_raster, (size(raster[1:end-1])..., raster[end]-2 * boundary.boundary), lag_extents)
+end
 
 function expectation_conditioned_on_spike_count(count, raster_size, lag_extents::NTuple{2})
     n_lag_extent = lag_extents[1]
@@ -52,13 +59,16 @@ function expectation_conditioned_on_constituent_parts(actual, count, raster_size
 end
 function rate_normed_sequence_classes(raster, boundary, lag_extents)
     # 0 means same as noise
-    raster_size = get_raster_size(raster, boundary)
     raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
-    raw_sequence_classes ./ (expectation_conditioned_on_spike_count(count(raster), raster_size, lag_extents) ./ calculate_scaling_factor(raster, boundary)) .- 1
+    raw_sequence_classes ./ (expectation_conditioned_on_spike_count(raster, boundary, lag_extents) ./ calculate_scaling_factor(raster, boundary))
 end
 function constituent_normed_sequence_classes(raster, boundary, lag_extents)
     # 0 means same as noise
     raster_size = get_raster_size(raster, boundary)
     raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
-    raw_sequence_classes ./ (expectation_conditioned_on_constituent_parts(raw_sequence_classes, count(raster), raster_size, lag_extents) ./ calculate_scaling_factor(raster, boundary)) .- 1
+    @show raw_sequence_classes
+    # @show expectation_conditioned_on_constituent_parts(raw_sequence_classes, count(raster), raster_size, lag_extents)
+    # raw_sequence_classes ./ (expectation_conditioned_on_constituent_parts(raw_sequence_classes, count(raster), raster_size, lag_extents) ./ calculate_scaling_factor(raster, boundary))
+    @show expectation_conditioned_on_spike_count(count(raster), raster_size, lag_extents)
+    raw_sequence_classes ./ (expectation_conditioned_on_spike_count(count(raster), raster_size, lag_extents) ./ calculate_scaling_factor(raster, boundary))
 end
