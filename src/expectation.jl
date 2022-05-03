@@ -66,9 +66,5 @@ function constituent_normed_sequence_classes(raster, boundary, lag_extents)
     # 0 means same as noise
     raster_size = get_raster_size(raster, boundary)
     raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
-    @show raw_sequence_classes
-    # @show expectation_conditioned_on_constituent_parts(raw_sequence_classes, count(raster), raster_size, lag_extents)
-    # raw_sequence_classes ./ (expectation_conditioned_on_constituent_parts(raw_sequence_classes, count(raster), raster_size, lag_extents) ./ calculate_scaling_factor(raster, boundary))
-    @show expectation_conditioned_on_spike_count(count(raster), raster_size, lag_extents)
     raw_sequence_classes ./ (expectation_conditioned_on_spike_count(count(raster), raster_size, lag_extents) ./ calculate_scaling_factor(raster, boundary))
 end
