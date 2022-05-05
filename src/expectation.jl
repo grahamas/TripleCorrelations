@@ -53,18 +53,18 @@ function expectation_conditioned_on_constituent_parts(actual, count::Number, ras
     [
         expected[1],
         expected[2],  # I
-        (expected[3] / expected[2]) * actual[2],   # II
+        (expected[3] / (expected[2] * expected[1])) * (actual[2] * actual[1]),   # II
         expected[4],  # III
-        (expected[5] / expected[4]) * actual[4],  # IV
+        (expected[5] / (expected[4] * expected[1])) * (actual[4] * actual[1]),  # IV
         expected[6],  # V
-        (expected[7] / (expected[2] * expected[4] * expected[6])) * (actual[2] * actual[4] * actual[6]) ,  # VI
-        (expected[8] / (expected[2] * expected[4] * expected[6])) * (actual[2] * actual[4] * actual[6]),  # VII
-        (expected[9] / (expected[2] * expected[6]^2)) * (actual[2] * actual[6]^2), # VIII
-        (expected[10] / (expected[2] * expected[6]^2)) * (actual[2] * actual[6]^2),  # IX; FIXME what
-        (expected[11] / (expected[2] * expected[6]^2)) * (actual[2] * actual[6]^2), # X; local dynamics precede
-        (expected[12] / (expected[4] * expected[6])) * (actual[4] * actual[6]),  # XI
-        (expected[13] / (expected[4] * expected[6])) * (actual[4] * actual[6]),  # XII
-        (expected[14] / (expected[6]^3)) * (actual[6]^3)  # XIII
+        (expected[7] / sqrt(expected[2] * expected[4] * expected[6])) * sqrt(actual[2] * actual[4] * actual[6]),  # VI
+        (expected[8] / sqrt(expected[2] * expected[4] * expected[6])) * sqrt(actual[2] * actual[4] * actual[6]),  # VII
+        (expected[9] / sqrt(expected[2] * expected[6]^2)) * sqrt(actual[2] * actual[6]^2), # VIII
+        (expected[10] / sqrt(expected[2] * expected[6]^2)) * sqrt(actual[2] * actual[6]^2),  # IX; FIXME what
+        (expected[11] / sqrt(expected[2] * expected[6]^2)) * sqrt(actual[2] * actual[6]^2), # X; local dynamics precede
+        (expected[12] / sqrt(expected[4] * expected[6]^2)) * sqrt(actual[4] * actual[6]^2),  # XI
+        (expected[13] / sqrt(expected[4] * expected[6]^2)) * sqrt(actual[4] * actual[6]^2),  # XII
+        (expected[14] / (expected[6]^(3/2))) * (actual[6]^(3/2))  # XIII
     ]
 end
 function rate_normed_sequence_classes(raster, boundary, lag_extents)
