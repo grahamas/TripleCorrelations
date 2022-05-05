@@ -2,6 +2,10 @@ function expectation_conditioned_on_spike_count(raster::AbstractArray, boundary:
     expectation_conditioned_on_spike_count(count(raster), size(raster), lag_extents)
 end
 
+function expectation_conditioned_on_constituent_parts(actual, raster::AbstractArray, boundary::Periodic, lag_extents::NTuple{2})
+    expectation_conditioned_on_constituent_parts(actual, count(raster), size(raster), lag_extents)
+end
+
 function slice_meat(raster, boundary)
     bd = boundary.boundary
     fin = size(raster)[end]
@@ -14,6 +18,10 @@ end
 
 function expectation_conditioned_on_spike_count(raster::AbstractArray, boundary::PeriodicExtended, lag_extents)
     expectation_conditioned_on_spike_count(count(slice_meat(raster, boundary)), size_meat(raster, boundary), lag_extents)
+end
+
+function expectation_conditioned_on_constituent_parts(actual, raster::AbstractArray, boundary::PeriodicExtended, lag_extents)
+    expectation_conditioned_on_constituent_parts(actual, count(slice_meat(raster, boundary)), size_meat(raster, boundary), lag_extents)
 end
 
 function expectation_conditioned_on_spike_count(count::Number, raster_size, lag_extents::NTuple{2})
@@ -74,7 +82,6 @@ function rate_normed_sequence_classes(raster, boundary, lag_extents)
 end
 function constituent_normed_sequence_classes(raster, boundary, lag_extents)
     # 0 means same as noise
-    raster_size = get_raster_size(raster, boundary)
     raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
-    raw_sequence_classes ./ (expectation_conditioned_on_spike_count(count(raster), raster_size, lag_extents) ./ calculate_scaling_factor(raster, boundary))
+    raw_sequence_classes ./ (expectation_conditioned_on_constituent_parts(raw_sequence_classes, raster, boundary, lag_extents) ./ calculate_scaling_factor(raster, boundary))
 end
