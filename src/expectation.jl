@@ -27,8 +27,8 @@ function unscaled_expectation_conditioned_on_spike_count(count::Number, raster_s
     DN2 = (n_lag_extent - 1)
     DOWN_T = floor(Int, t_lag_extent / 2)
     UP_T = ceil(Int, t_lag_extent / 2)
-    PS1 = ((R - 1) / (NT - 1))  # probability of spike given prior spike
-    PS2 = ((R - 2) / (NT - 2))  # probability of spike given two prior spikes
+    PS1 = max((R - 1) / (NT - 1),sqrt(eps()))  # probability of spike given prior spike
+    PS2 = max((R - 2) / (NT - 2),sqrt(eps()))  # probability of spike given two prior spikes
     C = 3
     [
         R,  # 0
@@ -75,6 +75,5 @@ end
 function constituent_normed_sequence_classes(raster, boundary, lag_extents)
     # 0 means same as noise
     raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
-    @show raw_sequence_classes
     raw_sequence_classes ./ expectation_conditioned_on_constituent_parts(raw_sequence_classes, raster, boundary, lag_extents)
 end
