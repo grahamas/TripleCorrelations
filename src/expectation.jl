@@ -1,30 +1,22 @@
-function expectation_conditioned_on_spike_count(raster::AbstractArray, boundary::Periodic, lag_extents::NTuple{2})
-    expectation_conditioned_on_spike_count(count(raster), size(raster), lag_extents)
-end
-
-function expectation_conditioned_on_constituent_parts(actual, raster::AbstractArray, boundary::Periodic, lag_extents::NTuple{2})
-    expectation_conditioned_on_constituent_parts(actual, count(raster), size(raster), lag_extents)
-end
-
-function slice_meat(raster, boundary)
+function slice_meat(raster, boundary::PeriodicExtended)
     bd = boundary.boundary
     fin = size(raster)[end]
     view_slice_last(raster, (bd+1):(fin-bd))
 end
 
-function size_meat(raster, boundary)
+function size_meat(raster, boundary::PeriodicExtended)
     (size(raster[1:end-1])..., raster[end]-2 * boundary.boundary)
 end
 
 function expectation_conditioned_on_spike_count(raster::AbstractArray, boundary::PeriodicExtended, lag_extents)
-    expectation_conditioned_on_spike_count(count(slice_meat(raster, boundary)), size_meat(raster, boundary), lag_extents)
+    unscaled_expectation_conditioned_on_spike_count(count(slice_meat(raster, boundary)), size_meat(raster, boundary), lag_extents) ./ calculate_scaling_factor(raster, boundary)
 end
 
-function expectation_conditioned_on_constituent_parts(actual, raster::AbstractArray, boundary::PeriodicExtended, lag_extents)
-    expectation_conditioned_on_constituent_parts(actual, count(slice_meat(raster, boundary)), size_meat(raster, boundary), lag_extents)
+function expectation_conditioned_on_spike_count(raster::AbstractArray, boundary::Periodic, lag_extents)
+    unscaled_expectation_conditioned_on_spike_count(count(raster), size(raster), lag_extents) ./ calculate_scaling_factor(raster, boundary)
 end
 
-function expectation_conditioned_on_spike_count(count::Number, raster_size, lag_extents::NTuple{2})
+function unscaled_expectation_conditioned_on_spike_count(count::Number, raster_size, lag_extents::NTuple{2})
     n_lag_extent = lag_extents[1]
     t_lag_extent = lag_extents[end]
     NT = prod(raster_size)
@@ -56,8 +48,8 @@ function expectation_conditioned_on_spike_count(count::Number, raster_size, lag_
     ]
 end
 
-function expectation_conditioned_on_constituent_parts(actual, count::Number, raster_size, lag_extents::NTuple{2})
-    expected = expectation_conditioned_on_spike_count(count, raster_size, lag_extents)
+function expectation_conditioned_on_constituent_parts(actual, raster, boundary::AbstractBoundaryCondition, lag_extents::NTuple{2})
+    expected = expectation_conditioned_on_spike_count(raster, boundary, lag_extents)
     [
         expected[1],
         expected[2],  # I
@@ -78,10 +70,11 @@ end
 function rate_normed_sequence_classes(raster, boundary, lag_extents)
     # 0 means same as noise
     raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
-    raw_sequence_classes ./= (expectation_conditioned_on_spike_count(raster, boundary, lag_extents) ./ calculate_scaling_factor(raster, boundary))
+    raw_sequence_classes ./= expectation_conditioned_on_spike_count(raster, boundary, lag_extents)
 end
 function constituent_normed_sequence_classes(raster, boundary, lag_extents)
     # 0 means same as noise
     raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
-    raw_sequence_classes ./ (expectation_conditioned_on_constituent_parts(raw_sequence_classes, raster, boundary, lag_extents) ./ calculate_scaling_factor(raster, boundary))
+    @show raw_sequence_classes
+    raw_sequence_classes ./ expectation_conditioned_on_constituent_parts(raw_sequence_classes, raster, boundary, lag_extents)
 end
