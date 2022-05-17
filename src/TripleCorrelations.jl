@@ -5,6 +5,7 @@ using CSV, Tables
 using Memoize
 using Random
 using Base.Threads, ThreadsX
+using Statistics
 
 include("motif_examples.jl")
 export rand_motif
@@ -30,6 +31,6 @@ export time_tricorr_zeropad, space_tricorr_zeropad, space_time_tricorr_zeropad,
     marginal_tricorr_zeropad!
 
 include("expectation.jl")
-export rate_normed_sequence_classes, expectation_conditioned_on_spike_count, expectation_conditioned_on_constituent_parts, constituent_normed_sequence_classes
+export rate_normed_sequence_classes, expectation_conditioned_on_spike_count, expectation_conditioned_on_constituent_parts, constituent_normed_sequence_classes, new_spiking_expectation
 
 end # module
