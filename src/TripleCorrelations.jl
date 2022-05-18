@@ -33,6 +33,7 @@ export time_tricorr_zeropad, space_tricorr_zeropad, space_time_tricorr_zeropad,
 include("expectation.jl")
 export expectation_of_independent_spiking_conditioned_on_rate, 
     sequence_classes_divide_E_given_constituents,
-    sequence_classes_divide_E_given_rate
-
+    sequence_classes_divide_E_given_rate,
+    variance_of_standard_normals
+    
 end # module

@@ -78,3 +78,47 @@ function sequence_classes_divide_E_given_constituents(raster, boundary, lag_exte
     raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
     raw_sequence_classes ./ expectation_conditioned_on_constituent_parts(raw_sequence_classes, raster, boundary, lag_extents)
 end
+
+function variance_of_standard_normals(boundary::Periodic, lag_extents)
+    t_pm = lag_extents[end]
+    n_extents = lag_extents[1:end-1]
+    n_pm = prod(n_extents .+ 1) - 1
+
+    t_m = floor(t_pm / 2)
+    t_p = ceil(t_pm / 2)
+
+    counts = triplet_count_per_motif_base_node(boundary, lag_extents)
+    counts_coefficients = [
+        15 # 0
+        3 # I
+        2 # II
+        3 # III
+        2 # IV
+        3 # V
+        2
+        2
+        2
+        2
+        2
+        2
+        2
+        2
+    ]
+    bias = [
+        0
+        6t_pm
+        0
+        6n_pm
+        0
+        3n_pm*t_pm + n_pm*t_pm*(n_pm-1)*(t_pm-1)
+        0
+        0
+        0
+        0
+        0
+        0
+        0
+        0
+    ]
+    (counts .* counts_coefficients) .+ bias
+end
