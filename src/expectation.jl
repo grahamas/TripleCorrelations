@@ -53,9 +53,16 @@ function motif_order()
     ]
 end
 
-function expectation_of_independent_spiking_conditioned_on_rate(raster::Matrix{Bool}, boundary, lag_extents)
+function expectation_of_independent_spiking_conditioned_on_rate(raster::Matrix{Bool}, boundary::Periodic, lag_extents)
     p = mean(raster)
     return prod(size(raster)) .* (p .^ motif_order()) .* 
+        triplet_count_per_motif_base_node(boundary, lag_extents) ./ 
+        calculate_scaling_factor(raster, boundary)
+end
+
+function expectation_of_independent_spiking_conditioned_on_rate(raster::Matrix{Bool}, boundary::PeriodicExtended, lag_extents)
+    p = mean(raster)
+    return size_meat(raster,boundary) .* (p .^ motif_order()) .* 
         triplet_count_per_motif_base_node(boundary, lag_extents) ./ 
         calculate_scaling_factor(raster, boundary)
 end
