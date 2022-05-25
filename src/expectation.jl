@@ -8,7 +8,7 @@ function size_meat(raster, boundary::PeriodicExtended)
     (size(raster[1:end-1])..., raster[end]-2 * boundary.boundary)
 end
 
-function triplet_count_per_motif_base_node(boundary::Periodic, lag_extents)
+function triplet_count_per_motif_base_node(boundary::{Periodic,PeriodicExtended}, lag_extents)
     t_pm = lag_extents[end]
     n_extents = lag_extents[1:end-1]
     n_pm = prod(n_extents .+ 1) - 1
@@ -62,7 +62,7 @@ end
 
 function expectation_of_independent_spiking_conditioned_on_rate(raster::Matrix{Bool}, boundary::PeriodicExtended, lag_extents)
     p = mean(raster)
-    return size_meat(raster,boundary) .* (p .^ motif_order()) .* 
+    return prod(size_meat(raster,boundary)) .* (p .^ motif_order()) .* 
         triplet_count_per_motif_base_node(boundary, lag_extents) ./ 
         calculate_scaling_factor(raster, boundary)
 end
