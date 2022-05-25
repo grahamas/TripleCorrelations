@@ -8,7 +8,7 @@ function size_meat(raster, boundary::PeriodicExtended)
     (size(raster[1:end-1])..., raster[end]-2 * boundary.boundary)
 end
 
-function triplet_count_per_motif_base_node(boundary::{Periodic,PeriodicExtended}, lag_extents)
+function triplet_count_per_motif_base_node(boundary::Union{Periodic,PeriodicExtended}, lag_extents)
     t_pm = lag_extents[end]
     n_extents = lag_extents[1:end-1]
     n_pm = prod(n_extents .+ 1) - 1
