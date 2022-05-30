@@ -12,17 +12,17 @@ function lag_contribution(data::D, boundary::Periodic, p1::NTuple{N,Int}, p2::NT
     return contribution
 end
 
-function lag_contribution_pre_shifted(data::D, boundary::Periodic, data_λ₁, data_λ₂) where {N, T, D <: AbstractArray{T,N}}
+function lag_contribution_pre_shifted(data::D, boundary::Periodic, data_λ₁, data_λ₂, indices) where {N, T, D <: AbstractArray{T,N}}
     # Assume ns, ts < size(data)
     contribution = 0
 
-    @tturbo for p0 ∈ CartesianIndices(data)
+    @tturbo for p0 ∈ indices
         contribution += data[p0] * data_λ₁[p0] * data_λ₂[p0]
     end
     return contribution
 end
 
-function lag_contribution_pre_shifted(data::D, t1, t2, boundary::PeriodicExtended, data_λ₁, data_λ₂) where {N, T, D <: AbstractArray{T}}
+function lag_contribution_pre_shifted(data::D, t1, t2, boundary::PeriodicExtended, data_λ₁, data_λ₂, indices) where {N, T, D <: AbstractArray{T}}
     # Periodic in n; extended in t
     bd = boundary.boundary
     contribution = 0
@@ -31,7 +31,7 @@ function lag_contribution_pre_shifted(data::D, t1, t2, boundary::PeriodicExtende
     data_λ₁_view = view_slice_last(data_λ₁, ((bd+1):(size(data)[end] - bd)) .+ t1)
     data_λ₂_view = view_slice_last(data_λ₂, ((bd+1):(size(data)[end] - bd)) .+ t2)
 
-    @tturbo for p ∈ CartesianIndices(data_view)
+    @tturbo for p ∈ indices
         contribution += data_view[p] * data_λ₁_view[p] * data_λ₂_view[p]
     end
     return contribution
@@ -152,14 +152,14 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
 
     lag_ranges = map(((start,stop),) -> UnitRange(start,stop), zip(.-floor.(Int, lag_extents ./ 2), ceil.(Int, lag_extents ./ 2)))
 
+    indices = CartesianIndices(src)
     class_contribution .= 0
     for λ₁ ∈ Iterators.product(lag_ranges...)
         circshift!(lag1_cache, src, .-λ₁)
         for λ₂ ∈ Iterators.product(lag_ranges...)
             circshift!(lag2_cache, src, .-λ₂)
             class = lags_classifier(λ₁, λ₂)
-            contribution = lag_contribution_pre_shifted(src, boundary, lag1_cache, lag2_cache)
-            class_contribution[class] += contribution
+            class_contribution[class] += lag_contribution_pre_shifted(src, boundary, lag1_cache, lag2_cache, indices)
         end
     end
     class_contribution ./= calculate_scaling_factor(src, boundary)
@@ -179,6 +179,7 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
     @assert boundary.boundary + minimum(extended_dim_lag_range) >= 0 "$(boundary.boundary); $(lag_extents); $(size(src))"
     @assert maximum(extended_dim_lag_range) <= boundary.boundary "$(boundary.boundary); $(extended_dim_lag_range); $(lag_extents); $(size(src))"
 
+    indices = CartesianIndices(view_slice_last(data, (boundary.boundary+1):(size(data)[end] - boundary.boundary))) |> collect
     class_contribution .= 0
     for λ₁_periodic ∈ Iterators.product(periodic_lag_ranges...)
         circshift!(lag1_cache, src, (.-λ₁_periodic..., 0))
@@ -188,8 +189,7 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
                 λ₁ = (λ₁_periodic..., t₁)
                 λ₂ = (λ₂_periodic..., t₂)
                 class = lags_classifier(λ₁, λ₂)
-                contribution = lag_contribution_pre_shifted(src, t₁, t₂, boundary, lag1_cache, lag2_cache)
-                class_contribution[class] += contribution
+                class_contribution[class] += lag_contribution_pre_shifted(src, t₁, t₂, boundary, lag1_cache, lag2_cache, indices)
             end
         end
     end
