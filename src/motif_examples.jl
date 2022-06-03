@@ -185,6 +185,12 @@ function roman_encode_zero(n::Integer)
     return rnum
 end
 
+function rand_motif(motif_class::String, base_node_ranges::Tuple, lag_jitters::Tuple)
+    n_range, t_range = base_node_ranges
+    n_jitter, t_jitter = lag_jitters
+    rand_motif(motif_class, n_range, t_range, n_jitter, t_jitter)
+end
+
 function rand_motif(motif_class::String, n_range::AbstractArray, t_range::AbstractArray, n_jitter, t_jitter)
     if motif_class == "0"
         motif = rand_0(n_range, t_range, n_jitter, t_jitter)
