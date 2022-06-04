@@ -34,6 +34,7 @@ include("expectation.jl")
 export expectation_of_independent_spiking_conditioned_on_rate, 
     sequence_classes_divide_E_given_constituents,
     sequence_classes_divide_E_given_rate,
-    variance_of_standard_normals
+    variance_of_standard_normals,
+    estimate_std_of_standard_normals
     
 end # module
