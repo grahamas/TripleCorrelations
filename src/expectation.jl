@@ -79,6 +79,12 @@ function sequence_classes_divide_E_given_constituents(raster, boundary, lag_exte
     raw_sequence_classes ./ expectation_conditioned_on_constituent_parts(raw_sequence_classes, raster, boundary, lag_extents)
 end
 
+function estimate_std_of_standard_normals(raster_size, boundary, lag_extents, n_bootstraps=100)
+    l_contributions = [sequence_class_tricorr(randn(raster_size...), boundary, lag_extents) for _ ∈ 1:(n_bootstraps-1)]
+    std(l_contributions)
+end
+    
+
 function variance_of_standard_normals(boundary::Periodic, lag_extents)
     t_pm = lag_extents[end]
     n_extents = lag_extents[1:end-1]
