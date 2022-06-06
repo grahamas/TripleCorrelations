@@ -16,7 +16,7 @@ function lag_contribution_pre_shifted(data::D, boundary::Periodic, data_λ₁, d
     # Assume ns, ts < size(data)
     contribution = 0
 
-    @tturbo for p0 ∈ indices
+    @tturbo for p0 ∈ eachindex(data)
         contribution += data[p0] * data_λ₁[p0] * data_λ₂[p0]
     end
     return contribution

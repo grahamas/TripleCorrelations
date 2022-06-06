@@ -35,6 +35,13 @@ export expectation_of_independent_spiking_conditioned_on_rate,
     sequence_classes_divide_E_given_constituents,
     sequence_classes_divide_E_given_rate,
     variance_of_standard_normals,
-    estimate_std_of_standard_normals
-    
+    estimate_std_of_standard_normals,
+    estimate_μ, estimate_σ
+
+include("snippet_processing.jl")
+export extrema_01!, zscore!
+
+include("contributions_processing.jl")
+export precalculate
+
 end # module

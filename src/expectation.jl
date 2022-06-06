@@ -1,3 +1,18 @@
+
+
+abstract type AbstractDistributionAssumption end
+struct IndBernoulli <: AbstractDistributionAssumption end
+struct IndStdNormal <: AbstractDistributionAssumption end
+
+abstract type AbstractConditional end
+struct None <: AbstractConditional end
+struct Rate <: AbstractConditional end
+struct Constituents <: AbstractConditional end
+
+export IndBernoulli, IndStdNormal
+export None, Rate, Constituents
+
+
 function slice_meat(raster, boundary::PeriodicExtended)
     bd = boundary.boundary
     fin = size(raster)[end]
@@ -53,34 +68,37 @@ function motif_order()
     ]
 end
 
-function expectation_of_independent_spiking_conditioned_on_rate(raster::Matrix{Bool}, boundary::Periodic, lag_extents)
-    p = mean(raster)
-    return prod(size(raster)) .* (p .^ motif_order()) .* 
+function estimate_μ(assumption::IndBernoulli, condition::Rate, spike_count::Int, raster_size::Tuple, boundary::Periodic, lag_extents)
+    p = spike_count / prod(raster_size)
+    return prod(raster_size) .* (p .^ motif_order()) .* 
         triplet_count_per_motif_base_node(boundary, lag_extents) ./ 
-        calculate_scaling_factor(raster, boundary)
+        calculate_scaling_factor(raster_size, boundary)
 end
 
-function expectation_of_independent_spiking_conditioned_on_rate(raster::Matrix{Bool}, boundary::PeriodicExtended, lag_extents)
+function estimate_μ(assumption::IndBernoulli, condition::Rate, raster::Matrix{Bool}, boundary::Periodic, lag_extents)
+    estimate_μ(assumption, condition, count(raster), size_meat(raster), boundary, lag_extents)
+end
+
+function estimate_μ(assumption::IndBernoulli, condition::Rate, raster::Matrix{Bool}, boundary::PeriodicExtended, lag_extents)
     p = mean(raster)
     return prod(size_meat(raster,boundary)) .* (p .^ motif_order()) .* 
         triplet_count_per_motif_base_node(boundary, lag_extents) ./ 
         calculate_scaling_factor(raster, boundary)
 end
 
-
-function sequence_classes_divide_E_given_rate(raster, boundary, lag_extents)
-    # 0 means same as noise
-    raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
-    raw_sequence_classes ./= expectation_of_independent_spiking_conditioned_on_rate(raster, boundary, lag_extents)
-end
-function sequence_classes_divide_E_given_constituents(raster, boundary, lag_extents)
-    # 0 means same as noise
-    raw_sequence_classes = sequence_class_tricorr(raster, boundary, lag_extents)
-    raw_sequence_classes ./ expectation_conditioned_on_constituent_parts(raw_sequence_classes, raster, boundary, lag_extents)
+function estimate_σ(assumption::IndBernoulli, condition::Rate, raster::Matrix, boundary::AbstractBoundaryCondition, lag_extents, n_bootstraps=100)
+    estimate_σ(assumption, condition, n_spikes, size(raster), boundary, lag_extents, 100)
 end
 
-function estimate_std_of_standard_normals(raster_size, boundary, lag_extents, n_bootstraps=100)
-    l_contributions = [sequence_class_tricorr(randn(raster_size...), boundary, lag_extents) for _ ∈ 1:(n_bootstraps-1)]
+function estimate_σ(assumption::IndBernoulli, condition::Rate, n_spikes::Int, raster_size::Tuple, boundary::AbstractBoundaryCondition, lag_extents, n_bootstraps=100)
+    raster = zeros(Bool, raster_size...)
+    raster[1:n_spikes] .= true
+    l_contributions = [sequence_class_tricorr(shuffle!(raster), boundary, lag_extents) for _ ∈ 1:(n_bootstraps-1)]
+    std(l_contributions)
+end
+
+function estimate_σ(::IndStdNormal, condition::None, raster::Matrix, boundary::AbstractBoundaryCondition, lag_extents, n_bootstraps=100)
+    l_contributions = [sequence_class_tricorr(randn(size(raster)...), boundary, lag_extents) for _ ∈ 1:(n_bootstraps-1)]
     std(l_contributions)
 end
     

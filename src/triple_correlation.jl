@@ -69,16 +69,20 @@ function calculate_scaling_factor_interior(arr, λ_max)
     (T - λ_max[1] + 1) * (N - λ_max[2] + 1)
 end
 
-function calculate_scaling_factor(arr, ::ZeroPadded)
-    prod(size(arr)) # FIXME
+function calculate_scaling_factor(arr::AbstractArray, boundary::AbstractBoundaryCondition)
+    calculate_scaling_factor(size(arr), boundary)
 end
 
-function calculate_scaling_factor(arr, ::Periodic)
-    prod(size(arr))
+function calculate_scaling_factor(tup::Tuple, ::ZeroPadded)
+    prod(tup) # FIXME
 end
 
-function calculate_scaling_factor(arr, pe::PeriodicExtended)
-    scaling_factor = (size(arr)[end] - 2*(pe.boundary)) * prod(size(arr)[1:end-1])
+function calculate_scaling_factor(tup::Tuple, ::Periodic)
+    prod(tup)
+end
+
+function calculate_scaling_factor(tup::Tuple, pe::PeriodicExtended)
+    scaling_factor = (tup[end] - 2*(pe.boundary)) * prod(tup[1:end-1])
     return scaling_factor    
 end
 
