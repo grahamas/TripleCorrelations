@@ -1,28 +1,28 @@
 # Truncating calculation
 
-function lag_contribution(data::D, boundary::Periodic, p1::NTuple{N,Int}, p2::NTuple{N,Int}, data_λ₁=D(undef, size(data)), data_λ₂=D(undef, size(data))) where {N, T, D <: AbstractArray{T,N}}
+function lag_contribution(data::D, boundary::Periodic, p1::NTuple{N,Int}, p2::NTuple{N,Int}, data_λ₁=D(undef, size(data)), data_λ₂=D(undef, size(data))) where {N, T, D <: Array{T,N}}
     # Assume ns, ts < size(data)
     contribution = 0
     circshift!(data_λ₁, data, .-p1)
     circshift!(data_λ₂, data, .-p2)
 
-    @tturbo for p0 ∈ CartesianIndices(data)
+    @tturbo for p0 ∈ 1:length(data)
         contribution += data[p0] * data_λ₁[p0] * data_λ₂[p0]
     end
     return contribution
 end
 
-function lag_contribution_pre_shifted(data::D, boundary::Periodic, data_λ₁, data_λ₂, indices) where {N, T, D <: AbstractArray{T,N}}
+function lag_contribution_pre_shifted(data::D, boundary::Periodic, data_λ₁, data_λ₂) where {N, T, D <: AbstractArray{T,N}}
     # Assume ns, ts < size(data)
     contribution = 0
 
-    @tturbo for p0 ∈ 1:length(data)#eachindex(data)
+    @tturbo for p0 ∈ 1:length(data)
         contribution += data[p0] * data_λ₁[p0] * data_λ₂[p0]
     end
     return contribution
 end
 
-function lag_contribution_pre_shifted(data::D, t1, t2, boundary::PeriodicExtended, data_λ₁, data_λ₂, indices) where {N, T, D <: AbstractArray{T}}
+function lag_contribution_pre_shifted(data::D, t1, t2, boundary::PeriodicExtended, data_λ₁, data_λ₂) where {N, T, D <: Array{T}}
     # Periodic in n; extended in t
     bd = boundary.boundary
     contribution = 0
@@ -31,7 +31,7 @@ function lag_contribution_pre_shifted(data::D, t1, t2, boundary::PeriodicExtende
     data_λ₁_view = view_slice_last(data_λ₁, ((bd+1):(size(data)[end] - bd)) .+ t1)
     data_λ₂_view = view_slice_last(data_λ₂, ((bd+1):(size(data)[end] - bd)) .+ t2)
 
-    @tturbo for p ∈ indices
+    @tturbo for p ∈ 1:length(data)
         contribution += data_view[p] * data_λ₁_view[p] * data_λ₂_view[p]
     end
     return contribution
@@ -46,7 +46,7 @@ function if_positive(n)
     end
 end
 
-function lag_contribution(data::D, boundary::ZeroPadded, λ₁::NTuple{N}, λ₂::NTuple{N}) where {T,N, D <: AbstractArray{T,N}}
+function lag_contribution(data::D, boundary::ZeroPadded, λ₁::NTuple{N}, λ₂::NTuple{N}) where {T,N, D <: Array{T,N}}
     λ_starts = map(λ₁, λ₂) do p1, p2
         max(1 - min(p1, p2), 1)
     end
@@ -69,7 +69,7 @@ function lag_contribution(data::D, boundary::ZeroPadded, λ₁::NTuple{N}, λ₂
     A_λ₂ = @view data[λ₂_ranges...]
 
     contribution = 0
-    @tturbo for p ∈ CartesianIndices(A)
+    @tturbo for p ∈ 1:length(data)
         contribution += A[p] * A_λ₁[p] * A_λ₂[p]
     end
     return contribution
@@ -79,7 +79,7 @@ end
     view(arr, ntuple(_ -> Colon(), N - 1)..., dx)
 end
 
-function lag_contribution(data::D, boundary::PeriodicExtended, λ₁::NTuple{N,Int}, λ₂::NTuple{N,Int}, data_λ₁=D(undef, size(data)), data_λ₂=D(undef, size(data))) where {N, T, D <: AbstractArray{T}}
+function lag_contribution(data::D, boundary::PeriodicExtended, λ₁::NTuple{N,Int}, λ₂::NTuple{N,Int}, data_λ₁=D(undef, size(data)), data_λ₂=D(undef, size(data))) where {N, T, D <: Array{T}}
     # Periodic in n; extended in t
     # FIXME should validate extension holds lags
     bd = boundary.boundary
@@ -92,7 +92,7 @@ function lag_contribution(data::D, boundary::PeriodicExtended, λ₁::NTuple{N,I
     data_λ₁_view = view_slice_last(data_λ₁, ((bd+1):(size(data)[end] - bd) .+ t1))
     data_λ₂_view = view_slice_last(data_λ₂, ((bd+1):(size(data)[end] - bd) .+ t2))
 
-    @tturbo for p ∈ CartesianIndices(data_view)
+    @tturbo for p ∈ 1:length(data_vivew)
         contribution += data_view[p] * data_λ₁_view[p] * data_λ₂_view[p]
     end
     return contribution
@@ -152,14 +152,13 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
 
     lag_ranges = map(((start,stop),) -> UnitRange(start,stop), zip(.-floor.(Int, lag_extents ./ 2), ceil.(Int, lag_extents ./ 2)))
 
-    indices = CartesianIndices(src)
     class_contribution .= 0
     for λ₁ ∈ Iterators.product(lag_ranges...)
         circshift!(lag1_cache, src, .-λ₁)
         for λ₂ ∈ Iterators.product(lag_ranges...)
             circshift!(lag2_cache, src, .-λ₂)
             class = lags_classifier(λ₁, λ₂)
-            class_contribution[class] += lag_contribution_pre_shifted(src, boundary, lag1_cache, lag2_cache, indices)
+            class_contribution[class] += lag_contribution_pre_shifted(src, boundary, lag1_cache, lag2_cache)
         end
     end
     class_contribution ./= calculate_scaling_factor(src, boundary)
@@ -189,7 +188,7 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
                 λ₁ = (λ₁_periodic..., t₁)
                 λ₂ = (λ₂_periodic..., t₂)
                 class = lags_classifier(λ₁, λ₂)
-                class_contribution[class] += lag_contribution_pre_shifted(src, t₁, t₂, boundary, lag1_cache, lag2_cache, indices)
+                class_contribution[class] += lag_contribution_pre_shifted(src, t₁, t₂, boundary, lag1_cache, lag2_cache)
             end
         end
     end
