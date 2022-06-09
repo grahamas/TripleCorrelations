@@ -16,7 +16,7 @@ function lag_contribution_pre_shifted(data::D, boundary::Periodic, data_λ₁, d
     # Assume ns, ts < size(data)
     contribution = 0
 
-    @tturbo for p0 ∈ eachindex(data)
+    @tturbo for p0 ∈ 1:length(data)#eachindex(data)
         contribution += data[p0] * data_λ₁[p0] * data_λ₂[p0]
     end
     return contribution
@@ -116,7 +116,7 @@ function lag_sequence_class_contributions(tricorr::TripleCorrelation)
     return contributions
 end
 
-function sequence_class_tricorr(src, boundary::AbstractBoundaryCondition, lag_extents)
+function sequence_class_tricorr(src::Array, boundary::AbstractBoundaryCondition, lag_extents)
     N_network_classifications = 14
     network_class_contributions = Array{Float64}(undef, N_network_classifications)
     lags_classifier = lag_motif_sequence_class
@@ -125,7 +125,7 @@ function sequence_class_tricorr(src, boundary::AbstractBoundaryCondition, lag_ex
     return network_class_contributions
 end
 
-function sequence_class_tricorr!(class_contribution::AbstractVector, src::AbstractArray{T}, boundary::ZeroPadded, lag_extents, lags_classifier::Function) where T
+function sequence_class_tricorr!(class_contribution::AbstractVector, src::Array{T}, boundary::ZeroPadded, lag_extents, lags_classifier::Function) where T
     src = parent(src)
 
     lag_ranges = map(((start,stop),) -> UnitRange(start,stop), zip(.-floor.(Int, lag_extents ./ 2), ceil.(Int, lag_extents ./ 2)))
@@ -145,7 +145,7 @@ end
 
 # Periodic calculation
 
-function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, boundary::Periodic, lag_extents, lags_classifier::Function) where {T, SRC<:AbstractArray{T}}
+function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, boundary::Periodic, lag_extents, lags_classifier::Function) where {T, SRC<:Array{T}}
     src = parent(src)
     lag1_cache = typeof(src)(undef, size(src))
     lag2_cache = typeof(src)(undef, size(src))
@@ -165,7 +165,7 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
     class_contribution ./= calculate_scaling_factor(src, boundary)
 end
 
-function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, boundary::PeriodicExtended, lag_extents, lags_classifier::Function) where {T, SRC<:AbstractArray{T}}
+function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, boundary::PeriodicExtended, lag_extents, lags_classifier::Function) where {T, N,SRC<:Array{T,N}}
     src = parent(src)
     lag1_cache = typeof(src)(undef, size(src))
     lag2_cache = typeof(src)(undef, size(src))
