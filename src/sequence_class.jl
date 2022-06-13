@@ -31,7 +31,7 @@ function lag_contribution_pre_shifted(data::D, t1, t2, boundary::PeriodicExtende
     data_λ₁_view = view_slice_last(data_λ₁, ((bd+1):(size(data)[end] - bd)) .+ t1)
     data_λ₂_view = view_slice_last(data_λ₂, ((bd+1):(size(data)[end] - bd)) .+ t2)
 
-    @tturbo for p ∈ 1:length(data)
+    @tturbo for p ∈ 1:length(data_view)
         contribution += data_view[p] * data_λ₁_view[p] * data_λ₂_view[p]
     end
     return contribution
@@ -178,7 +178,6 @@ function sequence_class_tricorr!(class_contribution::AbstractVector, src::SRC, b
     @assert boundary.boundary + minimum(extended_dim_lag_range) >= 0 "$(boundary.boundary); $(lag_extents); $(size(src))"
     @assert maximum(extended_dim_lag_range) <= boundary.boundary "$(boundary.boundary); $(extended_dim_lag_range); $(lag_extents); $(size(src))"
 
-    indices = CartesianIndices(view_slice_last(data, (boundary.boundary+1):(size(data)[end] - boundary.boundary))) |> collect
     class_contribution .= 0
     for λ₁_periodic ∈ Iterators.product(periodic_lag_ranges...)
         circshift!(lag1_cache, src, (.-λ₁_periodic..., 0))
