@@ -5,7 +5,7 @@ using CSV, Tables
 using Memoize
 using Random
 using Base.Threads, ThreadsX
-using Statistics
+using Statistics, StatsBase
 
 include("motif_examples.jl")
 export rand_motif
@@ -39,7 +39,7 @@ export expectation_of_independent_spiking_conditioned_on_rate,
     estimate_μ, estimate_σ
 
 include("snippet_processing.jl")
-export extrema_01!, zscore!
+export extrema_01!#, zscore!
 
 include("contributions_processing.jl")
 export precalculate

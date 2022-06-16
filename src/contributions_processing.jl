@@ -5,9 +5,9 @@ function precalculate(func::Function, args...)
 end
 
 function precalculate(::typeof(zscore!), assumption::IndStdNormal, condition, all_rasters, boundary, lag_extents)
-    σ = estimate_σ(assumption, condition, example_raster, boundary, lag_extents)
+    σ = estimate_σ(assumption, condition, first(all_rasters), boundary, lag_extents)
     function zscore_stdnorm!(o, i, raster)
-        zscore!(o, i, 0, σ)
+        o .= i ./ σ
     end
 end
 function precalculate(::typeof(zscore!), assumption::IndBernoulli, condition, all_rasters::AbstractArray, boundary, lag_extents)
@@ -22,7 +22,7 @@ function precalculate(::typeof(zscore!), assumption::IndBernoulli, condition, al
     function zscore_bernoulli!(o, i, raster)
         μ = μ_from_count[count(raster)]
         σ = σ_from_count[count(raster)]
-        zscore!(o, i, μ, σ)
+        @. o = (i - μ) / σ
     end
 end
 
