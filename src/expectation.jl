@@ -72,7 +72,7 @@ function estimate_μ(assumption::IndBernoulli, condition::Rate, spike_count::Int
     p = spike_count / prod(raster_size)
     return prod(raster_size) .* (p .^ motif_order()) .* 
         triplet_count_per_motif_base_node(boundary, lag_extents) ./ 
-        calculate_scaling_factor(raster_size, boundary)
+        TripleCorrelations.calculate_scaling_factor(raster_size, boundary)
 end
 
 function estimate_μ(assumption::IndBernoulli, condition::Rate, raster::Matrix{Bool}, boundary::Periodic, lag_extents)
@@ -83,7 +83,7 @@ function estimate_μ(assumption::IndBernoulli, condition::Rate, raster::Matrix{B
     p = mean(raster)
     return prod(size_meat(raster,boundary)) .* (p .^ motif_order()) .* 
         triplet_count_per_motif_base_node(boundary, lag_extents) ./ 
-        calculate_scaling_factor(raster, boundary)
+        TripleCorrelations.calculate_scaling_factor(raster, boundary)
 end
 
 function estimate_σ(assumption::IndBernoulli, condition::Rate, raster::Matrix, boundary::AbstractBoundaryCondition, lag_extents, n_bootstraps=100)
@@ -145,4 +145,35 @@ function variance_of_standard_normals(boundary::Periodic, lag_extents)
         0
     ]
     (counts .* counts_coefficients) .+ bias
+end
+
+
+#################### Constituent
+
+
+function estimate_μ(assumption::IndBernoulli, condition::Constituents, spike_count::Int, raster_size::Tuple, boundary, lag_extents, measured)
+    rate_expectation = estimate_μ(assumption, Rate(), spike_count, raster_size, boundary, lag_extents)
+    [
+        rate_expectation[1],
+        rate_expectation[2],  # I
+        (rate_expectation[3] / (rate_expectation[2] * rate_expectation[1])) * (measured[2] * measured[1]),   # II
+        rate_expectation[4],  # III
+        (rate_expectation[5] / (rate_expectation[4] * rate_expectation[1])) * (measured[4] * measured[1]),  # IV
+        rate_expectation[6],  # V
+        (rate_expectation[7] / sqrt(rate_expectation[2] * rate_expectation[4] * rate_expectation[6])) * sqrt(measured[2] * measured[4] * measured[6]),  # VI
+        (rate_expectation[8] / sqrt(rate_expectation[2] * rate_expectation[4] * rate_expectation[6])) * sqrt(measured[2] * measured[4] * measured[6]),  # VII
+        (rate_expectation[9] / sqrt(rate_expectation[2] * rate_expectation[6]^2)) * sqrt(measured[2] * measured[6]^2), # VIII
+        (rate_expectation[10] / sqrt(rate_expectation[2] * rate_expectation[6]^2)) * sqrt(measured[2] * measured[6]^2),  # IX; FIXME what
+        (rate_expectation[11] / sqrt(rate_expectation[2] * rate_expectation[6]^2)) * sqrt(measured[2] * measured[6]^2), # X; local dynamics precede
+        (rate_expectation[12] / sqrt(rate_expectation[4] * rate_expectation[6]^2)) * sqrt(measured[4] * measured[6]^2),  # XI
+        (rate_expectation[13] / sqrt(rate_expectation[4] * rate_expectation[6]^2)) * sqrt(measured[4] * measured[6]^2),  # XII
+        (rate_expectation[14] / (rate_expectation[6]^(3/2))) * (measured[6]^(3/2))  # XIII
+    ]
+
+end
+
+
+function expectation_conditioned_on_constituent_parts(actual, raster, boundary::AbstractBoundaryCondition, lag_extents::NTuple{2})
+    expected = expectation_conditioned_on_spike_count(raster, boundary, lag_extents)
+    
 end
