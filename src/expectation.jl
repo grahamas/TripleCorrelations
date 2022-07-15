@@ -151,8 +151,8 @@ end
 #################### Constituent
 
 
-function estimate_μ(assumption::IndBernoulli, condition::Constituents, spike_count::Int, raster_size::Tuple, boundary, lag_extents, measured)
-    rate_expectation = estimate_μ(assumption, Rate(), spike_count, raster_size, boundary, lag_extents)
+function estimate_μ(assumption::IndBernoulli, condition::Constituents, raster::Matrix{Bool}, boundary::PeriodicExtended, lag_extents, measured)
+    rate_expectation = estimate_μ(assumption, Rate(), raster, boundary, lag_extents)
     [
         rate_expectation[1],
         rate_expectation[2],  # I
