@@ -75,18 +75,18 @@ function estimate_μ(assumption::IndBernoulli, condition::Rate, spike_count::Int
         TripleCorrelations.calculate_scaling_factor(raster_size, boundary)
 end
 
-function estimate_μ(assumption::IndBernoulli, condition::Rate, raster::Matrix{Bool}, boundary::Periodic, lag_extents)
+function estimate_μ(assumption::IndBernoulli, condition::Rate, raster::AbstractMatrix{Bool}, boundary::Periodic, lag_extents)
     estimate_μ(assumption, condition, count(raster), size_meat(raster), boundary, lag_extents)
 end
 
-function estimate_μ(assumption::IndBernoulli, condition::Rate, raster::Matrix{Bool}, boundary::PeriodicExtended, lag_extents)
+function estimate_μ(assumption::IndBernoulli, condition::Rate, raster::AbstractMatrix{Bool}, boundary::PeriodicExtended, lag_extents)
     p = mean(raster)
     return prod(size_meat(raster,boundary)) .* (p .^ motif_order()) .* 
         triplet_count_per_motif_base_node(boundary, lag_extents) ./ 
         TripleCorrelations.calculate_scaling_factor(raster, boundary)
 end
 
-function estimate_σ(assumption::IndBernoulli, condition::Rate, raster::Matrix, boundary::AbstractBoundaryCondition, lag_extents, n_bootstraps=100)
+function estimate_σ(assumption::IndBernoulli, condition::Rate, raster::AbstractMatrix, boundary::AbstractBoundaryCondition, lag_extents, n_bootstraps=100)
     estimate_σ(assumption, condition, n_spikes, size(raster), boundary, lag_extents, 100)
 end
 
@@ -97,7 +97,7 @@ function estimate_σ(assumption::IndBernoulli, condition::Rate, n_spikes::Int, r
     std(l_contributions)
 end
 
-function estimate_σ(::IndStdNormal, condition::None, raster::Matrix, boundary::AbstractBoundaryCondition, lag_extents, n_bootstraps=100)
+function estimate_σ(::IndStdNormal, condition::None, raster::AbstractMatrix, boundary::AbstractBoundaryCondition, lag_extents, n_bootstraps=100)
     l_contributions = [sequence_class_tricorr(randn(size(raster)...), boundary, lag_extents) for _ ∈ 1:(n_bootstraps-1)]
     std(l_contributions)
 end
