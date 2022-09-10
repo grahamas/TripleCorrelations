@@ -6,6 +6,7 @@ end
 
 function precalculate(::typeof(zscore!), assumption::IndStdNormal, condition, all_rasters, boundary, lag_extents)
     σ = estimate_σ(assumption, condition, first(all_rasters), boundary, lag_extents)
+    # μ estimate is 0
     function zscore_stdnorm!(o, i, raster)
         o .= i ./ σ
     end

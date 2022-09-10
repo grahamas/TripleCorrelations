@@ -7,3 +7,7 @@ end
 function zscore!(output, input, μ=mean(input), σ=std(input))
     @. output = (input - μ) / σ
 end
+
+function identity!(output, input, raster)
+    @. output = input
+end
